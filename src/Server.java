@@ -1,70 +1,43 @@
 import java.io.*;
 import java.net.*;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 public class Server {
-  public static void main(String[] args)throws IOException, InterruptedException {
-    //create socket and get ip
-    ServerSocket ss = new ServerSocket(1234);
-    System.out.println("Running Server");
+  //store handler list
+  static LinkedList<ClientHandler> handlers = new LinkedList<>();
+  // count clients
+  static int userCount = 0;
 
-    Socket s = ss.accept();
-    System.out.println("Client Connected "+ s);
+  public static void main(String[] args) throws IOException {
+    new Server();
+  }
+  //create socket and get ip
 
-    BufferedReader br=new BufferedReader(new InputStreamReader(System.in));
+  public Server() throws IOException {
+    try (ServerSocket ss = new ServerSocket(1234)) {
+      System.out.println("Running Server");
+      Socket s = null;
 
-    //create sender thread
-    Thread thSender;
-    thSender = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          while(true){
-            synchronized (this){
-              //scan new message to send
-              String strSend = br.readLine();
-              DataOutputStream dos = new DataOutputStream(s.getOutputStream());
-              dos.writeUTF(strSend);
-              dos.flush();
-              if(strSend.equals("bye")){
-                System.out.println("Server exiting ...");
-                break;
-              }
-              System.out.println("Waiting for client response ...");
-            }
-          }
-        } catch (IOException e){
-          e.printStackTrace();
+      while (true) {
+        s = ss.accept();
+        userCount++;
+        System.out.println("New Client Connected " + s);
+        ClientHandler handler = new ClientHandler(s);
+        handlers.add(handler);
+        Thread t = new Thread(handler);
+        t.start();
+
+        if (userCount % 2 == 0) {
+          handlers.get(userCount - 2).pair = handler;
+          handler.pair = handlers.get(userCount - 2);
+          System.out.println("2 client has been matched");
+          handlers.get(userCount - 2).dos.writeUTF("Matched!\n");
+          handlers.get(userCount - 1).dos.writeUTF("Matched!\n");
+        } else {
+          handler.dos.writeUTF("Searching for stranger...");
         }
       }
-    });
-
-    Thread thReceive;
-    thReceive = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          while (true){
-            synchronized (this){
-              DataInputStream dis = new DataInputStream(s.getInputStream());
-              String strReceive;
-              strReceive = dis.readUTF();
-              System.out.println("Client say: "+strReceive);
-              if(strReceive.equals("bye")){
-                System.out.println("Connection Closed");
-                break;
-              }
-            }
-          }
-        } catch (IOException e){
-          e.printStackTrace();
-        }
-      }
-    });
-
-    thReceive.start();
-    thSender.start();
-
-    thSender.join();
-    thReceive.join();
+    }
   }
 }

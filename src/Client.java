@@ -2,57 +2,56 @@ import java.io.*;
 import java.net.*;
 
 public class Client {
-  public static void main(String[] args)throws IOException, InterruptedException {
+  public static void main(String[] args) throws IOException, InterruptedException {
+    new Client();
+  }
+
+  public Client() throws IOException, InterruptedException {
     //create socket and get ip
-
-    Socket s = new Socket("localhost",1234);
-    BufferedReader br=new BufferedReader(new InputStreamReader(System.in));
-
+    Socket s = new Socket("localhost", 1234);
+    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+    DataInputStream dis = new DataInputStream(s.getInputStream());
     //create sender thread
+
     Thread thSender;
     thSender = new Thread(new Runnable() {
       @Override
       public void run() {
         try {
-          while(true){
-            synchronized (this){
+          while (true) {
+            synchronized (this) {
               //scan new message to send
               String strSend = br.readLine();
-              DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+              System.out.println("You: " + strSend);
               dos.writeUTF(strSend);
-              dos.flush();
               if(strSend.equals("bye")){
-                System.out.println("Client exiting ...");
-                break;
+                s.close();
               }
-              System.out.println("Waiting for server response ...");
             }
           }
-        } catch (Exception e){
-          System.out.println("Exception occured");
+        } catch (Exception e) {
           e.printStackTrace();
         }
       }
     });
 
-    Thread thReceive;
-    thReceive = new Thread(new Runnable() {
+    Thread thReceiver;
+    thReceiver = new Thread(new Runnable() {
       @Override
       public void run() {
         try {
-          while (true){
-            synchronized (this){
-              DataInputStream dis = new DataInputStream(s.getInputStream());
-              String strReceive;
-              strReceive = dis.readUTF();
-              System.out.println("Server say: "+strReceive);
-              if(strReceive.equals("bye")){
-                System.out.println("Connection Closed");
-                break;
+          while (true) {
+            synchronized (this) {
+              String strReceived;
+              strReceived = dis.readUTF();
+              System.out.println("Stranger: " + strReceived);
+              if(strReceived.equals("bye")){
+                s.close();
               }
             }
           }
-        } catch (Exception e){
+        } catch (Exception e) {
           System.out.println("Exception occured");
           e.printStackTrace();
         }
@@ -60,9 +59,9 @@ public class Client {
     });
 
     thSender.start();
-    thReceive.start();
+    thReceiver.start();
 
     thSender.join();
-    thReceive.join();
+    thReceiver.join();
   }
 }
