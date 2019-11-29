@@ -1,12 +1,15 @@
+package RoomChat;
+
 import java.io.*;
 import java.net.*;
+import java.util.StringTokenizer;
 
 public class Client {
-  public static void main(String[] args) throws IOException, InterruptedException {
+  public static void main(String[] args) throws IOException {
     new Client();
   }
 
-  public Client() throws IOException, InterruptedException {
+  public Client() throws IOException {
     //create socket and get ip
     Socket s = new Socket("localhost", 1234);
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -23,10 +26,8 @@ public class Client {
             synchronized (this) {
               //scan new message to send
               String strSend = br.readLine();
-              System.out.println("You: " + strSend);
-              dos.writeUTF(strSend);
-              if(strSend.equals("bye")){
-                s.close();
+              if (strSend != null) {
+                dos.writeUTF(strSend);
               }
             }
           }
@@ -45,10 +46,11 @@ public class Client {
             synchronized (this) {
               String strReceived;
               strReceived = dis.readUTF();
-              System.out.println("Stranger: " + strReceived);
-              if(strReceived.equals("bye")){
-                s.close();
-              }
+              StringTokenizer st = new StringTokenizer(strReceived, "#");
+              String from = st.nextToken();
+              if (from.equals("server"))
+                System.err.println(st.nextToken());
+              else System.out.println(strReceived);
             }
           }
         } catch (Exception e) {
@@ -60,8 +62,5 @@ public class Client {
 
     thSender.start();
     thReceiver.start();
-
-    thSender.join();
-    thReceiver.join();
   }
 }
