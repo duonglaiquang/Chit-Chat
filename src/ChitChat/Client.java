@@ -44,7 +44,7 @@ public class Client {
         try {
           while (true) {
             synchronized (this) {
-              String strReceived;
+              String strReceived = null;
               strReceived = dis.readUTF();
               StringTokenizer st = new StringTokenizer(strReceived, "#");
               String from = st.nextToken();
@@ -53,8 +53,9 @@ public class Client {
               else System.out.println(strReceived);
             }
           }
-        } catch (Exception e) {
-          System.out.println("Exception occured");
+        } catch (EOFException e) {
+          System.out.println("Disconnected!");
+        } catch (IOException e) {
           e.printStackTrace();
         }
       }

@@ -14,11 +14,12 @@ public class Server {
   static HashMap<Socket, Socket> pair = new HashMap<>();
   static int userCount = 0;
   static int roomCount = 0;
-  final static String[] commands = {"command-create, command-join, command-help, command-match, command-quit", "command-status"};
+  final static String[] commands = {"cmd-create-<room_name>", "cmd-join-<room_id>", "cmd-match", "cmd-status",
+      "cmd-roomls", "cmd-ls", "cmd-leave", "cmd-quit"};
 
   public static void main(String[] args) throws IOException {
     try (ServerSocket ss = new ServerSocket(1234)) {
-      System.out.println("Running Server");
+      System.out.println("Running Server on " + ss + "...");
       Socket s;
 
       while (true) {
@@ -46,6 +47,35 @@ public class Server {
     }
   }
 
+  public static void variablesCorrection(Socket s) throws IOException {
+    ChatRoom room;
+    DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+    if (pair.get(s) != null) {
+      Socket socket = pair.get(s);
+      DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+      pair.remove(s);
+      pair.remove(socket);
+      os.writeUTF("server#Stranger has left the chat!\nReturning to main screen...");
+      dos.writeUTF("server#Stranger has left the chat!\nReturning to main screen...");
+      loadRoomList(socket);
+    } else {
+      room = currentRoom.get(s);
+      if (room.clientCount == 1) {
+        rooms.remove(room);
+        roomCount--;
+      } else {
+        room.clientCount--;
+        room.sockets.remove(s);
+        for (Socket socket : room.sockets) {
+          DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+          os.writeUTF("server#Stranger has left the chat.");
+        }
+      }
+      currentRoom.remove(s);
+      dos.writeUTF("server#Leaved!");
+    }
+  }
+
   public static void checkCommand(String str, Socket s, DataOutputStream dos) {
     StringTokenizer st = new StringTokenizer(str, "-");
     String magicWord = st.nextToken();
@@ -59,8 +89,9 @@ public class Server {
       }
     }
     try {
-      if (magicWord.equals("command") && action != null) {
+      if (magicWord.equals("cmd") && action != null) {
         switch (action) {
+
           case "create":
             if (target != null) {
               room = new ChatRoom(roomCount, target);
@@ -73,6 +104,7 @@ public class Server {
               dos.writeUTF("Welcome to " + room.name);
             } else dos.writeUTF("server#Wrong Command!");
             break;
+
           case "join":
             if (target != null) {
               room = rooms.get(Integer.parseInt(target));
@@ -86,25 +118,7 @@ public class Server {
               dos.writeUTF("server#" + room.name + " joined.");
             } else dos.writeUTF("server#Wrong Command!");
             break;
-          case "leave":
-            room = currentRoom.get(s);
-            if (room.clientCount == 1) {
-              rooms.remove(room);
-            } else {
-              room.clientCount--;
-              room.sockets.remove(s);
-              for (Socket socket : room.sockets) {
-                DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-                os.writeUTF("server#Stranger has left the chat.");
-              }
-            }
-            currentRoom.remove(s);
-            dos.writeUTF("server#Room Leaved!");
-            loadRoomList(s);
-            break;
-          case "roomls":
-            loadRoomList(s);
-            break;
+
           case "match":
             searching.add(s);
             if (searching.size() % 2 == 0) {
@@ -122,11 +136,37 @@ public class Server {
               Thread.sleep(1000);
             }
             break;
+
+          case "leave":
+            variablesCorrection(s);
+            loadRoomList(s);
+            break;
+
+          case "quit":
+            Server.variablesCorrection(s);
+            s.close();
+            break;
+
+          case "roomls":
+            loadRoomList(s);
+            break;
+
+          case "ls":
+            for (String cmd : commands) {
+              dos.writeUTF(cmd);
+            }
+            break;
+
+          case "status":
+            dos.writeUTF("server#Clients Connected: " + userCount);
+            dos.writeUTF("server#Numbers of Room: " + roomCount);
+            break;
+
           default:
             dos.writeUTF("server#Wrong Command!");
             break;
         }
-      } else if (magicWord.equalsIgnoreCase("command") && action == null) {
+      } else if (magicWord.equalsIgnoreCase("cmd") && action == null) {
         dos.writeUTF("server#Wrong Command!");
       } else {
         try {
