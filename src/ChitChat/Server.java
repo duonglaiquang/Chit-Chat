@@ -1,4 +1,4 @@
-package RoomChat;
+package ChitChat;
 
 import java.io.*;
 import java.net.*;
@@ -9,7 +9,9 @@ import java.util.StringTokenizer;
 public class Server {
   static LinkedList<ClientHandler> handlers = new LinkedList<>();
   static LinkedList<ChatRoom> rooms = new LinkedList<>();
+  static LinkedList<Socket> searching = new LinkedList<>();
   static HashMap<Socket, ChatRoom> currentRoom = new HashMap<>();
+  static HashMap<Socket, Socket> pair = new HashMap<>();
   static int userCount = 0;
   static int roomCount = 0;
   final static String[] commands = {"command-create, command-join, command-help, command-match, command-quit", "command-status"};
@@ -81,7 +83,7 @@ public class Server {
               }
               room.sockets.add(s);
               currentRoom.put(s, room);
-              dos.writeUTF("server#"+room.name+" joined.");
+              dos.writeUTF("server#" + room.name + " joined.");
             } else dos.writeUTF("server#Wrong Command!");
             break;
           case "leave":
@@ -103,6 +105,23 @@ public class Server {
           case "roomls":
             loadRoomList(s);
             break;
+          case "match":
+            searching.add(s);
+            if (searching.size() % 2 == 0) {
+              Socket socket = searching.get(searching.size() - 2);
+              pair.put(s, socket);
+              pair.put(socket, s);
+              searching.remove(s);
+              searching.remove(socket);
+              DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+              dos.writeUTF("server#Stranger Matched!");
+              os.writeUTF("server#Stranger Matched");
+            }
+            while (pair.get(s) == null) {
+              dos.writeUTF("server#Serching...");
+              Thread.sleep(1000);
+            }
+            break;
           default:
             dos.writeUTF("server#Wrong Command!");
             break;
@@ -111,18 +130,23 @@ public class Server {
         dos.writeUTF("server#Wrong Command!");
       } else {
         try {
-          room = currentRoom.get(s);
-          for (Socket socket : room.sockets) {
-            if (!socket.equals(s)) {
-              DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-              os.writeUTF("Stranger: " + str);
+          if (pair.get(s) != null) {
+            DataOutputStream os = new DataOutputStream(pair.get(s).getOutputStream());
+            os.writeUTF("Stranger: " + str);
+          } else {
+            room = currentRoom.get(s);
+            for (Socket socket : room.sockets) {
+              if (!socket.equals(s)) {
+                DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+                os.writeUTF("Stranger: " + str);
+              }
             }
           }
         } catch (NullPointerException e) {
           dos.writeUTF("server#You need to join/create a room or match with someone to chat!");
         }
       }
-    } catch (IOException e) {
+    } catch (IOException | InterruptedException e) {
       e.printStackTrace();
     }
   }

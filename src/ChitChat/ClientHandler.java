@@ -1,4 +1,5 @@
-package Matching;
+package ChitChat;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -6,7 +7,6 @@ public class ClientHandler implements Runnable {
   final DataOutputStream dos;
   final DataInputStream dis;
   final Socket s;
-  public ClientHandler pair = null;
 
   public ClientHandler(Socket s) throws IOException {
     this.s = s;
@@ -25,7 +25,7 @@ public class ClientHandler implements Runnable {
             synchronized (this) {
               String strReceived;
               strReceived = dis.readUTF();
-              pair.dos.writeUTF(strReceived);
+              Server.checkCommand(strReceived, s, dos);
             }
           }
         } catch (IOException e) {
@@ -33,12 +33,6 @@ public class ClientHandler implements Runnable {
         }
       }
     });
-
     thReceiver.start();
-    try {
-      thReceiver.join();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
   }
 }

@@ -1,4 +1,4 @@
-package RoomChat;
+package ChitChat;
 
 import java.io.*;
 import java.net.*;

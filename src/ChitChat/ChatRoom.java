@@ -1,4 +1,4 @@
-package RoomChat;
+package ChitChat;
 
 import java.net.Socket;
 import java.util.LinkedList;
