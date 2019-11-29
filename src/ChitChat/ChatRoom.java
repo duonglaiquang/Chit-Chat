@@ -9,7 +9,7 @@ public class ChatRoom {
   Integer clientCount = 0;
   LinkedList<Socket> sockets = new LinkedList<>();
 
-  public ChatRoom(Integer id, String name){
+  public ChatRoom(Integer id, String name) {
     this.id = id;
     this.name = name;
   }

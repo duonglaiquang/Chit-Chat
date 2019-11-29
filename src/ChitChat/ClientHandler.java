@@ -2,6 +2,7 @@ package ChitChat;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ClientHandler implements Runnable {
   final DataOutputStream dos;
@@ -28,6 +29,17 @@ public class ClientHandler implements Runnable {
               Server.checkCommand(strReceived, s, dos);
             }
           }
+
+        } catch (EOFException e) {
+          Server.userCount--;
+          System.out.println("Client disconnected abruptly!");
+          try {
+            Server.variablesCorrection(s);
+          } catch (IOException ex) {
+            ex.printStackTrace();
+          }
+        } catch (SocketException e) {
+          System.out.println("Client disconnected!");
         } catch (IOException e) {
           e.printStackTrace();
         }
