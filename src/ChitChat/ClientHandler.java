@@ -30,12 +30,12 @@ public class ClientHandler implements Runnable {
             }
           }
 
-        } catch (EOFException e) {
+        } catch (EOFException | NullPointerException e) {
           Server.userCount--;
           System.out.println("Client disconnected abruptly!");
           try {
             Server.variablesCorrection(s);
-          } catch (IOException ex) {
+          } catch (IOException | NullPointerException ex) {
             ex.printStackTrace();
           }
         } catch (SocketException e) {
