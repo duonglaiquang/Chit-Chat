@@ -2,20 +2,21 @@ package ChitChat;
 
 import java.io.*;
 import java.net.*;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class Server {
   static LinkedList<ClientHandler> handlers = new LinkedList<>();
   static LinkedList<ChatRoom> rooms = new LinkedList<>();
-  static LinkedList<Socket> searching = new LinkedList<>();
+  //static HashMap<Socket, List<String>> searching = new HashMap<>();
+  static HashMap<String, LinkedList<Socket>> searching = new HashMap<>();
+
   static HashMap<Socket, ChatRoom> currentRoom = new HashMap<>();
   static HashMap<Socket, Socket> pair = new HashMap<>();
   static int userCount = 0;
   static int roomCount = 0;
-  final static String[] commands = {"cmd-create-<room_name>", "cmd-join-<room_id>", "cmd-match", "cmd-status",
+  final static String[] commands = {"cmd-create-<room_name>", "cmd-join-<room_id>", "cmd-match-<#tag1#tag2#tag3>", "cmd-status",
       "cmd-roomls", "cmd-ls", "cmd-leave", "cmd-quit"};
+  final static String[] tags = {"game", "movie", "book", "music", "random"};
 
   public static void main(String[] args) throws IOException {
     try (ServerSocket ss = new ServerSocket(1234)) {
@@ -35,6 +36,31 @@ public class Server {
     }
   }
 
+  static void checkTag(Socket s, String tag) {
+    if (searching.get(tag) != null) {
+      searching.get(tag).add(s);
+    } else {
+      LinkedList<Socket> soc = new LinkedList<>();
+      soc.add(s);
+      searching.put(tag, soc);
+    }
+  }
+
+  static void searchTag(Socket s, String tag, DataOutputStream dos) throws IOException {
+    checkTag(s, tag);
+    LinkedList<Socket> soc = searching.get(tag);
+    if (soc.size() % 2 == 0) {
+      Socket socket = soc.get(soc.size() - 2);
+      pair.put(s, socket);
+      pair.put(socket, s);
+      soc.remove(s);
+      soc.remove(socket);
+      DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+      dos.writeUTF("server#Stranger Matched!");
+      os.writeUTF("server#Stranger Matched");
+    }
+  }
+
   public static void loadRoomList(Socket s) throws IOException {
     DataOutputStream dos = new DataOutputStream(s.getOutputStream());
     if (roomCount == 0) {
@@ -47,7 +73,7 @@ public class Server {
     }
   }
 
-  public static void variablesCorrection(Socket s) throws IOException {
+  public static void variablesCorrection(Socket s) throws IOException, NullPointerException {
     ChatRoom room;
     DataOutputStream dos = new DataOutputStream(s.getOutputStream());
     if (pair.get(s) != null) {
@@ -81,10 +107,11 @@ public class Server {
     String magicWord = st.nextToken();
     String action = null;
     String target = null;
+    String tagls = null;
     ChatRoom room;
     if (st.hasMoreTokens()) {
       action = st.nextToken();
-      if (st.hasMoreTokens()) {
+      if (st.hasMoreTokens() && !action.equals("match")) {
         target = st.nextToken();
       }
     }
@@ -120,17 +147,16 @@ public class Server {
             break;
 
           case "match":
-            searching.add(s);
-            if (searching.size() % 2 == 0) {
-              Socket socket = searching.get(searching.size() - 2);
-              pair.put(s, socket);
-              pair.put(socket, s);
-              searching.remove(s);
-              searching.remove(socket);
-              DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-              dos.writeUTF("server#Stranger Matched!");
-              os.writeUTF("server#Stranger Matched");
+            if (st.hasMoreTokens()) {
+              tagls = st.nextToken();
+              String[] tagArr = tagls.split("#");
+              for (int i = 1; i < tagArr.length; i++) {
+                searchTag(s, tagArr[i], dos);
+              }
+            } else {
+              searchTag(s, null, dos);
             }
+
             while (pair.get(s) == null) {
               dos.writeUTF("server#Serching...");
               Thread.sleep(1000);
@@ -143,7 +169,7 @@ public class Server {
             break;
 
           case "quit":
-            Server.variablesCorrection(s);
+            variablesCorrection(s);
             s.close();
             break;
 
@@ -186,7 +212,7 @@ public class Server {
           dos.writeUTF("server#You need to join/create a room or match with someone to chat!");
         }
       }
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException | InterruptedException | NullPointerException e) {
       e.printStackTrace();
     }
   }
