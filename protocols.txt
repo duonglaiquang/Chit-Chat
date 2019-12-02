@@ -1,10 +1,11 @@
-###Server - Client
+###Command Line Protocols
 
-###Client - Server
-    command-create-<room_name>
-    command-join-<room_id>
-    command-match
-    command-status
-
-###Client - Client
-    command-quit
+    cmd-create-<room_name>
+    cmd-join-<room_id>
+    cmd-match
+    cmd-match-#<tag1>#<tag2>...#<tag(n)>
+    cmd-status
+    cmd-ls
+    cmd-roomls
+    cmd-leave
+    cmd-quit
