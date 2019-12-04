@@ -7,7 +7,7 @@
 
 <AnchorPane fx:id="searchingPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="Controller.RootController">
+            fx:controller="ChitChat.Controller.RootController">
     <Label layoutX="198.0" layoutY="115.0" text="Searching...">
         <font>
             <Font name="Arial Bold" size="36.0"/>

@@ -1,4 +1,4 @@
-package Controller;
+package ChitChat.Controller;
 
 import ChitChat.Client.Client;
 import javafx.fxml.FXMLLoader;
@@ -17,7 +17,7 @@ public class RootController {
   public void match(MouseEvent mouseEvent) throws IOException {
     Client client = new Client();
     client.start();
-    AnchorPane pane = FXMLLoader.load(getClass().getResource("../ChitChat/View/searching.fxml"));
+    AnchorPane pane = FXMLLoader.load(getClass().getResource("../View/searching.fxml"));
     rootPane.getChildren().setAll(pane);
   }
 
