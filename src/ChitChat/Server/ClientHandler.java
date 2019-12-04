@@ -1,4 +1,4 @@
-package ChitChat;
+package ChitChat.Server;
 
 import java.io.*;
 import java.net.Socket;

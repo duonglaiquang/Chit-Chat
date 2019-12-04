@@ -1,4 +1,4 @@
-package ChitChat;
+package ChitChat.Server;
 
 import java.net.Socket;
 import java.util.LinkedList;
