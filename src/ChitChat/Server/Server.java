@@ -1,4 +1,4 @@
-package ChitChat;
+package ChitChat.Server;
 
 import java.io.*;
 import java.net.*;
@@ -7,9 +7,7 @@ import java.util.*;
 public class Server {
   static LinkedList<ClientHandler> handlers = new LinkedList<>();
   static LinkedList<ChatRoom> rooms = new LinkedList<>();
-  //static HashMap<Socket, List<String>> searching = new HashMap<>();
   static HashMap<String, LinkedList<Socket>> searching = new HashMap<>();
-
   static HashMap<Socket, ChatRoom> currentRoom = new HashMap<>();
   static HashMap<Socket, Socket> pair = new HashMap<>();
   static int userCount = 0;

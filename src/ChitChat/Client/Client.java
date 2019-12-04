@@ -1,15 +1,11 @@
-package ChitChat;
+package ChitChat.Client;
 
 import java.io.*;
 import java.net.*;
 import java.util.StringTokenizer;
 
 public class Client {
-  public static void main(String[] args) throws IOException {
-    new Client();
-  }
-
-  public Client() throws IOException {
+  public void start() throws IOException {
     //create socket and get ip
     Socket s = new Socket("localhost", 1234);
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
