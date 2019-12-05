@@ -16,24 +16,6 @@ public class Server {
       "cmd-roomls", "cmd-ls", "cmd-leave", "cmd-quit"};
   final static String[] tags = {"game", "movie", "book", "music", "random"};
 
-  public static void main(String[] args) throws IOException {
-    try (ServerSocket ss = new ServerSocket(1234)) {
-      System.out.println("Running Server on " + ss + "...");
-      Socket s;
-
-      while (true) {
-        s = ss.accept();
-        userCount++;
-        System.out.println("New Client Connected " + s);
-        ClientHandler handler = new ClientHandler(s);
-        handlers.add(handler);
-        Thread t = new Thread(handler);
-        t.start();
-        loadRoomList(handler.s);
-      }
-    }
-  }
-
   static void checkTag(Socket s, String tag) {
     if (searching.get(tag) != null) {
       searching.get(tag).add(s);
@@ -54,8 +36,9 @@ public class Server {
       soc.remove(s);
       soc.remove(socket);
       DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-      dos.writeUTF("server#Stranger Matched!");
-      os.writeUTF("server#Stranger Matched");
+      dos.writeUTF("server#Matched");
+      os.writeUTF("server#Matched");
+      System.out.println("2 Clients has been matched with each other!");
     }
   }
 
@@ -100,118 +83,109 @@ public class Server {
     }
   }
 
-  public static void checkCommand(String str, Socket s, DataOutputStream dos) {
-    StringTokenizer st = new StringTokenizer(str, "-");
-    String magicWord = st.nextToken();
-    String action = null;
-    String target = null;
-    String tagls = null;
-    ChatRoom room;
-    if (st.hasMoreTokens()) {
-      action = st.nextToken();
-      if (st.hasMoreTokens() && !action.equals("match")) {
-        target = st.nextToken();
-      }
+  public static void createRoom(Socket s, String name) throws IOException {
+    ChatRoom room = new ChatRoom(roomCount, name);
+    DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+    room.clientCount++;
+    room.sockets.add(s);
+    rooms.add(room);
+    roomCount++;
+    currentRoom.put(s, room);
+    dos.writeUTF("server#RoomCreated");
+  }
+
+  public static void joinRoom(Socket s, Integer id) throws IOException {
+    ChatRoom room = rooms.get(id);
+    DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+    room.clientCount++;
+    for (Socket socket : room.sockets) {
+      DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+      os.writeUTF("server#StrangerJoined");
     }
-    try {
-      if (magicWord.equals("cmd") && action != null) {
-        switch (action) {
+    room.sockets.add(s);
+    currentRoom.put(s, room);
+    dos.writeUTF("server#RoomJoined");
+  }
 
-          case "create":
-            if (target != null) {
-              room = new ChatRoom(roomCount, target);
-              room.clientCount++;
-              room.sockets.add(s);
-              rooms.add(room);
-              roomCount++;
-              currentRoom.put(s, room);
-              dos.writeUTF("server#Room Created Successfully");
-              dos.writeUTF("Welcome to " + room.name);
-            } else dos.writeUTF("server#Wrong Command!");
-            break;
+  public static void match(Socket s, String tags) throws IOException, InterruptedException {
+    DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+    if (tags != null) {
+      String[] tagArr = tags.split("#");
+      for (int i = 1; i < tagArr.length; i++) {
+        searchTag(s, tagArr[i], dos);
+      }
+    } else {
+      searchTag(s, null, dos);
+    }
+    while (pair.get(s) == null) {
+      dos.writeUTF("server#Serching");
+      Thread.sleep(1000);
+    }
+  }
 
-          case "join":
-            if (target != null) {
-              room = rooms.get(Integer.parseInt(target));
-              room.clientCount++;
-              for (Socket socket : room.sockets) {
-                DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-                os.writeUTF("server#Stranger has join the chat.");
-              }
-              room.sockets.add(s);
-              currentRoom.put(s, room);
-              dos.writeUTF("server#" + room.name + " joined.");
-            } else dos.writeUTF("server#Wrong Command!");
-            break;
+  public static void leave(Socket s) throws IOException {
+    variablesCorrection(s);
+    loadRoomList(s);
+    s.close();
+  }
 
-          case "match":
-            if (st.hasMoreTokens()) {
-              tagls = st.nextToken();
-              String[] tagArr = tagls.split("#");
-              for (int i = 1; i < tagArr.length; i++) {
-                searchTag(s, tagArr[i], dos);
-              }
-            } else {
-              searchTag(s, null, dos);
-            }
+  public static void quit(Socket s) throws IOException {
+    variablesCorrection(s);
+    s.close();
+  }
 
-            while (pair.get(s) == null) {
-              dos.writeUTF("server#Serching...");
-              Thread.sleep(1000);
-            }
-            break;
+  public static void loadRoom(Socket s) throws IOException {
+    loadRoomList(s);
+  }
 
-          case "leave":
-            variablesCorrection(s);
-            loadRoomList(s);
-            break;
+  public static void getStatsu() {
+    //TODO
+  }
 
-          case "quit":
-            variablesCorrection(s);
-            s.close();
-            break;
-
-          case "roomls":
-            loadRoomList(s);
-            break;
-
-          case "ls":
-            for (String cmd : commands) {
-              dos.writeUTF(cmd);
-            }
-            break;
-
-          case "status":
-            dos.writeUTF("server#Clients Connected: " + userCount);
-            dos.writeUTF("server#Numbers of Room: " + roomCount);
-            break;
-
-          default:
-            dos.writeUTF("server#Wrong Command!");
-            break;
-        }
-      } else if (magicWord.equalsIgnoreCase("cmd") && action == null) {
-        dos.writeUTF("server#Wrong Command!");
-      } else {
-        try {
-          if (pair.get(s) != null) {
-            DataOutputStream os = new DataOutputStream(pair.get(s).getOutputStream());
-            os.writeUTF("Stranger: " + str);
-          } else {
-            room = currentRoom.get(s);
-            for (Socket socket : room.sockets) {
-              if (!socket.equals(s)) {
-                DataOutputStream os = new DataOutputStream(socket.getOutputStream());
-                os.writeUTF("Stranger: " + str);
-              }
+  public static void checkCommand(String str, Socket s) throws IOException, InterruptedException {
+    ChatRoom room;
+    StringTokenizer st = new StringTokenizer(str, "#");
+    String cmd = st.nextToken();
+    if (cmd.equals("request")) {
+      String action = st.nextToken();
+      if(action.equals("match")){
+        match(s, null);
+      }
+    } else {
+      try {
+        if (pair.get(s) != null) {
+          DataOutputStream os = new DataOutputStream(pair.get(s).getOutputStream());
+          os.writeUTF("Stranger: " + str);
+        } else {
+          room = currentRoom.get(s);
+          for (Socket socket : room.sockets) {
+            if (!socket.equals(s)) {
+              DataOutputStream os = new DataOutputStream(socket.getOutputStream());
+              os.writeUTF("Stranger: " + str);
             }
           }
-        } catch (NullPointerException e) {
-          dos.writeUTF("server#You need to join/create a room or match with someone to chat!");
         }
+      } catch (IOException | NullPointerException e) {
+        e.printStackTrace();
       }
-    } catch (IOException | InterruptedException | NullPointerException e) {
-      e.printStackTrace();
+    }
+  }
+
+  public static void main(String[] args) throws IOException {
+    try (ServerSocket ss = new ServerSocket(1234)) {
+      System.out.println("Running Server on " + ss + "...");
+      Socket s;
+
+      while (true) {
+        s = ss.accept();
+        userCount++;
+        System.out.println("New Client Connected At " + s);
+        ClientHandler handler = new ClientHandler(s);
+
+        handlers.add(handler);
+        Thread t = new Thread(handler);
+        t.start();
+      }
     }
   }
 }
