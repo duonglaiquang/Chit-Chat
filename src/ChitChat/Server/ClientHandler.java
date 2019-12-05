@@ -26,7 +26,7 @@ public class ClientHandler implements Runnable {
             synchronized (this) {
               String strReceived;
               strReceived = dis.readUTF();
-              Server.checkCommand(strReceived, s, dos);
+              Server.checkCommand(strReceived, s);
             }
           }
 
@@ -40,7 +40,7 @@ public class ClientHandler implements Runnable {
           }
         } catch (SocketException e) {
           System.out.println("Client disconnected!");
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
           e.printStackTrace();
         }
       }

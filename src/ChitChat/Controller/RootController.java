@@ -1,26 +1,28 @@
 package ChitChat.Controller;
 
-import ChitChat.Client.Client;
+import ChitChat.Main;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 
 public class RootController {
-  public Button cancelBtn;
   public Button matchBtn;
   public AnchorPane rootPane;
-  public AnchorPane searchingPane;
 
-  public void match(MouseEvent mouseEvent) throws IOException {
-    Client client = new Client();
-    client.start();
-    AnchorPane pane = FXMLLoader.load(getClass().getResource("../View/searching.fxml"));
-    rootPane.getChildren().setAll(pane);
-  }
+  public void match() throws IOException, NullPointerException {
+//    AnchorPane pane = FXMLLoader.load(getClass().getResource("../View/searching.fxml"));
+//    rootPane.getChildren().setAll(pane);
+//    Main.client.requestMatch();
 
-  public void cancel(MouseEvent mouseEvent) {
+    Parent searchPane = FXMLLoader.load(getClass().getResource("../View/searching.fxml"));
+    Stage stage = Main.homestage;
+    Scene scene = new Scene(searchPane, 600, 400);
+    stage.setScene(scene);
+    Main.client.requestMatch();
   }
 }

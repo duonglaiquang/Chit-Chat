@@ -1,10 +1,7 @@
-package ChitChat.Client;
-
-import ChitChat.Controller.RootController;
-import ChitChat.Main;
+package ChitChat.Test;
 
 import java.io.*;
-import java.net.*;
+import java.net.Socket;
 import java.util.StringTokenizer;
 
 public class Client {
@@ -16,7 +13,7 @@ public class Client {
     dos.flush();
   }
 
-  public void start() throws IOException {
+  public static void main(String[] args) throws IOException {
     //create socket and get ip
     s = new Socket("localhost", 1234);
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -54,12 +51,7 @@ public class Client {
               strReceived = dis.readUTF();
               StringTokenizer st = new StringTokenizer(strReceived, "#");
               String from = st.nextToken();
-              if (from.equals("server")) {
-                String target = st.nextToken();
-                if (target.equals("Matched")) {
-                  Main.sc.matched();
-                } else System.out.println(target);
-              } else System.out.println(strReceived);
+              System.out.println(strReceived);
             }
           }
         } catch (EOFException e) {
