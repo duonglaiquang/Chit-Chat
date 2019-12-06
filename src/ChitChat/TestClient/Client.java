@@ -1,4 +1,4 @@
-package ChitChat.Test;
+package ChitChat.TestClient;
 
 import java.io.*;
 import java.net.Socket;
@@ -15,7 +15,7 @@ public class Client {
 
   public static void main(String[] args) throws IOException {
     //create socket and get ip
-    s = new Socket("localhost", 1234);
+    s = new Socket("192.168.110.122", 1234);
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     DataOutputStream dos = new DataOutputStream(s.getOutputStream());
     DataInputStream dis = new DataInputStream(s.getInputStream());

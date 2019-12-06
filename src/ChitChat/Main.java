@@ -4,6 +4,7 @@ import ChitChat.Client.Client;
 import ChitChat.Controller.RootController;
 import ChitChat.Controller.SearchingController;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -23,6 +24,10 @@ public class Main extends Application {
     primaryStage.setTitle("Chit Chat");
     primaryStage.setScene(new Scene(root, 600, 400));
     primaryStage.show();
+    homestage.setOnCloseRequest(e -> {
+      Platform.exit();
+      System.exit(0);
+    });
   }
 
   public static void main(String[] args) {
