@@ -10,6 +10,7 @@ public class Server {
   static HashMap<String, LinkedList<Socket>> searching = new HashMap<>();
   static HashMap<Socket, ChatRoom> currentRoom = new HashMap<>();
   static HashMap<Socket, Socket> pair = new HashMap<>();
+  static HashMap<Socket, Boolean> cancel = new HashMap<>();
   static int userCount = 0;
   static int roomCount = 0;
   final static String[] commands = {"cmd-create-<room_name>", "cmd-join-<room_id>", "cmd-match-<#tag1#tag2#tag3>", "cmd-status",
@@ -37,8 +38,31 @@ public class Server {
       soc.remove(socket);
       DataOutputStream os = new DataOutputStream(socket.getOutputStream());
       dos.writeUTF("server#Matched");
+      dos.flush();
       os.writeUTF("server#Matched");
+      os.flush();
       System.out.println("2 Clients has been matched with each other!");
+    }
+  }
+
+  public static void match(Socket s, String tags, DataOutputStream dos) throws IOException, InterruptedException {
+    if (tags != null) {
+      String[] tagArr = tags.split("#");
+      for (int i = 1; i < tagArr.length; i++) {
+        searchTag(s, tagArr[i], dos);
+      }
+    } else {
+      searchTag(s, null, dos);
+    }
+    while (pair.get(s) == null) {
+      if(cancel.get(s)){
+        dos.writeUTF("server#SearchCanceled");
+        dos.flush();
+        break;
+      }
+      dos.writeUTF("server#Serching");
+      dos.flush();
+      Thread.sleep(1000);
     }
   }
 
@@ -46,10 +70,12 @@ public class Server {
     DataOutputStream dos = new DataOutputStream(s.getOutputStream());
     if (roomCount == 0) {
       dos.writeUTF("server#No Room Chat Available!");
+      dos.flush();
     } else {
       dos.writeUTF("server#Room List: ");
       for (ChatRoom room : rooms) {
         dos.writeUTF("server#" + room.id + "." + room.name);
+        dos.flush();
       }
     }
   }
@@ -64,6 +90,8 @@ public class Server {
       pair.remove(socket);
       os.writeUTF("server#Stranger has left the chat!\nReturning to main screen...");
       dos.writeUTF("server#Stranger has left the chat!\nReturning to main screen...");
+      os.flush();
+      dos.flush();
       loadRoomList(socket);
     } else {
       room = currentRoom.get(s);
@@ -80,6 +108,7 @@ public class Server {
       }
       currentRoom.remove(s);
       dos.writeUTF("server#Leaved!");
+      dos.flush();
     }
   }
 
@@ -92,6 +121,7 @@ public class Server {
     roomCount++;
     currentRoom.put(s, room);
     dos.writeUTF("server#RoomCreated");
+    dos.flush();
   }
 
   public static void joinRoom(Socket s, Integer id) throws IOException {
@@ -105,22 +135,7 @@ public class Server {
     room.sockets.add(s);
     currentRoom.put(s, room);
     dos.writeUTF("server#RoomJoined");
-  }
-
-  public static void match(Socket s, String tags) throws IOException, InterruptedException {
-    DataOutputStream dos = new DataOutputStream(s.getOutputStream());
-    if (tags != null) {
-      String[] tagArr = tags.split("#");
-      for (int i = 1; i < tagArr.length; i++) {
-        searchTag(s, tagArr[i], dos);
-      }
-    } else {
-      searchTag(s, null, dos);
-    }
-    while (pair.get(s) == null) {
-      dos.writeUTF("server#Serching");
-      Thread.sleep(1000);
-    }
+    dos.flush();
   }
 
   public static void leave(Socket s) throws IOException {
@@ -142,14 +157,24 @@ public class Server {
     //TODO
   }
 
-  public static void checkCommand(String str, Socket s) throws IOException, InterruptedException {
+  public static void checkCommand(String str, Socket s, DataOutputStream dos) {
     ChatRoom room;
     StringTokenizer st = new StringTokenizer(str, "#");
     String cmd = st.nextToken();
     if (cmd.equals("request")) {
       String action = st.nextToken();
       if(action.equals("match")){
-        match(s, null);
+        Thread thMatch = new Thread(()->{
+          try {
+            match(s, null, dos);
+          } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+          }
+        });
+        thMatch.start();
+      }
+      if(action.equals("cancel")){
+        cancel.put(s, true);
       }
     } else {
       try {
@@ -181,7 +206,7 @@ public class Server {
         userCount++;
         System.out.println("New Client Connected At " + s);
         ClientHandler handler = new ClientHandler(s);
-
+        cancel.put(s, false);
         handlers.add(handler);
         Thread t = new Thread(handler);
         t.start();
