@@ -45,6 +45,24 @@ public class Server {
     }
   }
 
+  public static void cancelSearch(Socket s, DataOutputStream dos, String tags) throws IOException {
+    dos.writeUTF("server#SearchCanceled");
+    dos.flush();
+    if (tags != null) {
+      String[] tagArr = tags.split("#");
+      for (int i = 1; i < tagArr.length; i++) {
+        if (searching.get(tagArr[i]).size() == 1) {
+          searching.remove(tagArr[i]);
+        } else {
+          searching.get(tagArr[i]).remove(s);
+        }
+      }
+    } else {
+      searching.get(null).remove(s);
+    }
+    cancel.put(s, false);
+  }
+
   public static void match(Socket s, String tags, DataOutputStream dos) throws IOException, InterruptedException {
     if (tags != null) {
       String[] tagArr = tags.split("#");
@@ -55,9 +73,8 @@ public class Server {
       searchTag(s, null, dos);
     }
     while (pair.get(s) == null) {
-      if(cancel.get(s)){
-        dos.writeUTF("server#SearchCanceled");
-        dos.flush();
+      if (cancel.get(s)) {
+        cancelSearch(s,dos,tags);
         break;
       }
       dos.writeUTF("server#Serching");
@@ -93,7 +110,7 @@ public class Server {
       os.flush();
       dos.flush();
       loadRoomList(socket);
-    } else {
+    } else if (currentRoom.get(s) != null) {
       room = currentRoom.get(s);
       if (room.clientCount == 1) {
         rooms.remove(room);
@@ -163,8 +180,8 @@ public class Server {
     String cmd = st.nextToken();
     if (cmd.equals("request")) {
       String action = st.nextToken();
-      if(action.equals("match")){
-        Thread thMatch = new Thread(()->{
+      if (action.equals("match")) {
+        Thread thMatch = new Thread(() -> {
           try {
             match(s, null, dos);
           } catch (IOException | InterruptedException e) {
@@ -173,7 +190,7 @@ public class Server {
         });
         thMatch.start();
       }
-      if(action.equals("cancel")){
+      if (action.equals("cancel")) {
         cancel.put(s, true);
       }
     } else {
