@@ -1,6 +1,5 @@
 package Client;
 
-import Client.Controller.RootController;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -23,9 +22,7 @@ public class Main extends Application {
     client.start();
     homeStage = primaryStage;
     currentStage = primaryStage;
-//    root = FXMLLoader.load(getClass().getResource("View/root.fxml"));
-    FXMLLoader loader = new FXMLLoader(getClass().getResource("View/root.fxml"));
-    root = loader.load();
+    root = FXMLLoader.load(getClass().getResource("View/root.fxml"));
     primaryStage.setTitle("Chit Chat");
     primaryStage.setScene(new Scene(root, 600, 400));
     primaryStage.show();
