@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="chatBox" prefHeight="400.0" prefWidth="600.0"
+            xmlns="http://javafx.com/javafx/11.0.1" fx:controller="Client.Controller.ChatController">
+    <Label fx:id="topLabel" layoutX="154.0" layoutY="14.0" text="Welcome to the chat room. Be polite to each other."
+           textAlignment="CENTER" textFill="#000000b1">
+        <font>
+            <Font name="Arial Italic" size="13.0"/>
+        </font>
+    </Label>
+    <TextField layoutY="364.0" prefHeight="36.0" prefWidth="600.0"/>
+    <TextField fx:id="property" layoutX="265.0" layoutY="299.0" visible="false"/>
+</AnchorPane>
