@@ -23,3 +23,5 @@ hs_err_pid*
 .idea/*
 .out/*
 Test.java
+.DS_Store
+
