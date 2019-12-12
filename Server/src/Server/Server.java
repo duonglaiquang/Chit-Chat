@@ -44,6 +44,11 @@ public class Server {
       soc.remove(s);
       soc.remove(socket);
       System.out.println("2 Clients has been matched with each other!");
+      oos.writeObject("server#Matched");
+      oos.flush();
+      ObjectOutputStream os = oosOf.get(socket);
+      os.writeObject("server#Matched");
+      os.flush();
     }
   }
 
@@ -83,8 +88,6 @@ public class Server {
       oos.flush();
       Thread.sleep(1000);
     }
-    oos.writeObject("server#Matched");
-    oos.flush();
   }
 
   public static void loadRoomList(Socket s, ObjectOutputStream oos) throws IOException {
