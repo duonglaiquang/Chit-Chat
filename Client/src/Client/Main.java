@@ -1,5 +1,6 @@
 package Client;
 
+import Client.Controller.ChatController;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -12,6 +13,7 @@ public class Main extends Application {
   public static Stage homeStage;
   public static Stage currentStage;
   public static Parent root;
+  public static ChatController cc;
 
   public static void main(String[] args) {
     launch(args);

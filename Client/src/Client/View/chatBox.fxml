@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="chatBox" prefHeight="400.0" prefWidth="600.0"
-            xmlns="http://javafx.com/javafx/11.0.1" fx:controller="Client.Controller.ChatController">
-    <Label fx:id="topLabel" layoutX="154.0" layoutY="14.0" text="Welcome to the chat room. Be polite to each other."
-           textAlignment="CENTER" textFill="#000000b1">
-        <font>
-            <Font name="Arial Italic" size="13.0"/>
-        </font>
-    </Label>
-    <TextField layoutY="364.0" prefHeight="36.0" prefWidth="600.0"/>
-    <TextField fx:id="property" layoutX="265.0" layoutY="299.0" visible="false"/>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.Controller.ChatController">
+    <ScrollPane fx:id="chatscroll" prefHeight="366.0" prefWidth="600.0">
+        <VBox fx:id="chatbox" prefHeight="362.0" prefWidth="588.0">
+            <Label fx:id="topLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="24.0" prefWidth="585.0" text="Welcome to the chat room. Be polite to each other." textAlignment="CENTER" textFill="#000000b1">
+                <font>
+                    <Font name="Arial Italic" size="13.0" />
+                </font>
+            </Label>
+        </VBox>
+    </ScrollPane>
+    <TextField fx:id="message" layoutY="364.0" onAction="#submit" prefHeight="36.0" prefWidth="600.0" />
+    <TextField fx:id="property" layoutX="265.0" layoutY="299.0" visible="false" />
 </AnchorPane>

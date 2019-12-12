@@ -14,7 +14,8 @@ public class Server {
   final static String[] commands = {"cmd-create-<room_name>", "cmd-join-<room_id>", "cmd-match-<#tag1#tag2#tag3>", "cmd-status",
       "cmd-roomls", "cmd-ls", "cmd-leave", "cmd-quit"};
   final static String[] tags = {"game", "movie", "book", "music", "random"};
-  static LinkedList<ClientHandler> handlers = new LinkedList<>();
+
+  static HashMap<Socket, ObjectOutputStream> oosOf = new HashMap<>();
   static LinkedList<ChatRoom> rooms = new LinkedList<>();
   static HashMap<String, LinkedList<Socket>> searching = new HashMap<>();
   static HashMap<Socket, ChatRoom> currentRoom = new HashMap<>();
@@ -99,7 +100,7 @@ public class Server {
     ChatRoom room;
     if (pair.get(s) != null) {
       Socket socket = pair.get(s);
-      ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
+      ObjectOutputStream os = oosOf.get(socket);
       pair.remove(s);
       pair.remove(socket);
       os.writeObject("server#Stranger has left the chat!\nReturning to main screen...");
@@ -116,7 +117,7 @@ public class Server {
         room.clientCount--;
         room.sockets.remove(s);
         for (Socket socket : room.sockets) {
-          ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
+          ObjectOutputStream os = oosOf.get(socket);
           os.writeObject("server#Stranger has left the chat.");
         }
       }
@@ -142,7 +143,7 @@ public class Server {
     ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
     room.clientCount++;
     for (Socket socket : room.sockets) {
-      ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
+      ObjectOutputStream os = oosOf.get(socket);
       os.writeObject("server#StrangerJoined");
     }
     room.sockets.add(s);
@@ -209,13 +210,13 @@ public class Server {
     } else {
       try {
         if (pair.get(s) != null) {
-          ObjectOutputStream os = new ObjectOutputStream(pair.get(s).getOutputStream());
+          ObjectOutputStream os = oosOf.get(pair.get(s));
           os.writeObject("Stranger: " + str);
         } else {
           room = currentRoom.get(s);
           for (Socket socket : room.sockets) {
             if (!socket.equals(s)) {
-              ObjectOutputStream os = new ObjectOutputStream(socket.getOutputStream());
+              ObjectOutputStream os = oosOf.get(socket);
               os.writeObject("Stranger: " + str);
             }
           }
@@ -237,7 +238,6 @@ public class Server {
         System.out.println("New Client Connected At " + s);
         ClientHandler handler = new ClientHandler(s);
         cancel.put(s, false);
-        handlers.add(handler);
         Thread t = new Thread(handler);
         t.start();
       }
