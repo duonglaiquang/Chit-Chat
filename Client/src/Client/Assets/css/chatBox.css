@@ -1,0 +1,12 @@
+.chat-bubble{
+    -fx-border-width: 1px;
+    -fx-padding: 5px;
+    -fx-background-radius: 5px;
+}
+.receive {
+    -fx-background-color: white;
+}
+
+.send {
+    -fx-background-color: #53a1ff;
+}

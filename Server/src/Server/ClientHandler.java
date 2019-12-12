@@ -16,6 +16,7 @@ public class ClientHandler implements Runnable {
     this.s = s;
     this.ois = new ObjectInputStream(s.getInputStream());
     this.oos = new ObjectOutputStream(s.getOutputStream());
+    Server.oosOf.put(s, oos);
   }
 
   @Override

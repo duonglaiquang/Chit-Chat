@@ -1,32 +1,50 @@
 package Client;
 
-
-import Client.Controller.RoomController;
+import ChatRoom.ChatRoom;
+import Client.Controller.ChatController;
+import Client.Controller.CreateRoomModalController;
+import Client.Controller.RoomListController;
 import Client.Controller.RootController;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 
 public class Client {
-  public static Socket s;
-
-  public static ObjectOutputStream oos;
-  public static ObjectInputStream ois;
+  public Socket s;
+  public ObjectOutputStream oos;
+  public ObjectInputStream ois;
+  List<ChatRoom> data = createData();
 
   public void request(String action) throws IOException {
     oos.writeObject("request#" + action);
   }
 
+  private List<ChatRoom> createData() {
+    List<ChatRoom> data = new ArrayList<>(50);
+
+    for (int i = 0; i < 50; i++) {
+      data.add(new ChatRoom(i, "abc", "asdasdasd"));
+    }
+
+    return data;
+  }
+
   public void start() throws IOException {
     //create socket and get ip
-    s = new Socket("192.168.161.97", 1234);
+    s = new Socket("192.168.110.122", 1234);
     oos = new ObjectOutputStream(s.getOutputStream());
     ois = new ObjectInputStream(s.getInputStream());
     BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-
     //create sender thread
     Thread thSender = new Thread(() -> {
       try {
@@ -50,23 +68,19 @@ public class Client {
         while (true) {
 //            synchronized (this) {
           Object objReceived = ois.readObject();
-
           if (objReceived instanceof String) {
             String strReceived = (String) objReceived;
             StringTokenizer st = new StringTokenizer(strReceived, "#");
             String from = st.nextToken();
             if (from.equals("server")) {
               String response = st.nextToken();
-              FXMLLoader loader;
-              RootController rootController;
-              RoomController roomController;
+              RootController rc = new RootController();
+              CreateRoomModalController mc = new CreateRoomModalController();
               switch (response) {
                 case "Matched":
                   System.out.println("Client Matched!");
-                  loader = new FXMLLoader(getClass().getResource("View/root.fxml"));
-                  loader.load();
-                  rootController = loader.getController();
-                  rootController.matched();
+                  rc = new RootController();
+                  rc.matched();
                   break;
 
                 case "Searching":
@@ -75,11 +89,7 @@ public class Client {
 
                 case "Search_Canceled":
                   System.out.println("Search Canceled!");
-                  loader = new FXMLLoader(getClass().getResource("View/root.fxml"));
-                  loader.load();
-                  rootController = loader.getController();
-                  System.out.println(rootController);
-                  rootController.changeScene("root");
+                  rc.changeScene("root");
                   break;
 
                 case "Room_Created":
@@ -87,10 +97,7 @@ public class Client {
                   String id = st.nextToken();
                   String name = st.nextToken();
                   String description = st.nextToken();
-                  loader = new FXMLLoader(getClass().getResource("View/createRoomModal.fxml"));
-                  loader.load();
-                  roomController = loader.getController();
-                  roomController.roomCreated(id, name, description);
+                  mc.roomCreated(id, name, description);
                   break;
 
                 case "No_Room_Available":
@@ -101,15 +108,20 @@ public class Client {
                   System.out.println("Unknown Response: " + strReceived);
                   break;
               }
-            } else System.out.println(strReceived);
+            } else {
+              System.out.println(strReceived);
+              Main.cc.addMessage(strReceived, true);
+//              Platform.runLater(() -> Main.cc.addMessage(strReceived, true));
+            }
           } else {
-//            if (objReceived instanceof LinkedList) {
-//              int roomcount = ((LinkedList) objReceived).size();
-//              for (int i = 0; i < roomcount; i++) {
-//                ChatRoom obj = (ChatRoom) ((LinkedList) objReceived).get(i);
-//                System.out.println(obj.name+","+obj.description);
-//              }
-//            }
+            System.out.println("aaa");
+            if (objReceived instanceof LinkedList) {
+              int roomCount = ((LinkedList) objReceived).size();
+              FXMLLoader loader = new FXMLLoader(getClass().getResource("View/roomList.fxml"));
+              loader.load();
+              RoomListController roomListController = loader.getController();
+//              roomList = new ArrayList<ChatRoom>((LinkedList) objReceived);
+            }
           }
 //            }
         }
