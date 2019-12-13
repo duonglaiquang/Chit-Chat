@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -33,6 +34,41 @@ public class ChatController {
     }
     message.clear();
     addMessage(str, false);
+  }
+
+  public void showSystemMessage(String msg){
+    Label label = new Label(msg);
+    label.getStyleClass().add("system-grey");
+    label.getStylesheets().add(getClass().getResource("../Assets/css/chatBox.css").toExternalForm());
+    Button rematchBtn = new Button("Rematch");
+    rematchBtn.setOnAction(event -> {
+      RootController rc = new RootController();
+      try {
+        rc.matched();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+
+    Button backBtn = new Button("Back");
+    backBtn.setOnAction(event -> {
+      RootController rc = new RootController();
+      try {
+        rc.changeScene("root");
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+
+    HBox hBox = new HBox(15, rematchBtn, backBtn);
+    hBox.setAlignment(Pos.TOP_CENTER);
+    Platform.runLater(()->{
+      chatbox.getChildren().add(label);
+      chatbox.getChildren().add(hBox);
+      chatbox.setSpacing(10);
+      chatscroll.vvalueProperty().bind(chatbox.heightProperty());
+      chatscroll.setFitToWidth(true);
+    });
   }
 
   public void addMessage(String msg, Boolean left) throws FileNotFoundException {

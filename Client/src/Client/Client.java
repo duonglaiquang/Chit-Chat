@@ -92,6 +92,10 @@ public class Client {
                   rc.changeScene("root");
                   break;
 
+                case "Stranger_Disconnected":
+                  Main.cc.showSystemMessage("Stranger Has Left The Chat!");
+                  break;
+
                 case "Room_Created":
                   System.out.println("Room Created!");
                   String id = st.nextToken();
