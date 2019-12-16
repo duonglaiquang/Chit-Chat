@@ -2,17 +2,31 @@ package Client.Controller;
 
 import Client.Main;
 import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
 import java.io.IOException;
 
 public class RootController {
 
+  @FXML private ComboBox<String> tagbox;
+  @FXML private Label connection;
+
+  public void init(){
+    String[] tags = {"", "game", "book", "music", "boy", "girl"};
+    tagbox.getItems().addAll(tags);
+  }
+
   public void match() throws IOException, NullPointerException {
-    changeScene("searching");
-    Main.client.request("match");
+    if(Main.connected){
+      changeScene("searching");
+      Main.client.request("match");
+    }
   }
 
   public void cancelMatch() throws IOException {
@@ -29,12 +43,16 @@ public class RootController {
   }
 
   public void createRoom() throws IOException {
-    newStage("createRoomModal", "Create Room");
+    if(Main.connected)
+      newStage("createRoomModal", "Create Room");
   }
 
   public void showRoom() throws IOException {
-    Main.client.request("roomls");
-    newStage("roomList", "Room List");
+    if(Main.connected){
+      Main.client.request("roomls");
+//      newStage("roomList", "Room List");
+      changeScene("roomList");
+    }
   }
 //
   public void changeScene(String name) throws IOException {
@@ -42,6 +60,15 @@ public class RootController {
     fXMLLoader.setLocation(getClass().getResource("../View/" + name + ".fxml"));
     Scene scene = new Scene(fXMLLoader.load(), 600, 400);
     Stage stage = Main.homeStage;
+    if(name.equals("root")){
+      RootController rc = fXMLLoader.getController();
+      rc.updateConnectionStatus();
+      Platform.runLater(rc::init);
+    }
+//    if(name.equals("roomList")){
+//      RoomListController rc = fXMLLoader.getController();
+//      Platform.runLater(rc::init);
+//    }
     Platform.runLater(() -> stage.setScene(scene));
   }
 
@@ -56,6 +83,13 @@ public class RootController {
       stage.setTitle(title);
       stage.show();
       Main.currentStage = stage;
+    });
+  }
+
+  public void updateConnectionStatus() {
+    Platform.runLater(()->{
+      connection.setText("Connected to Server");
+      connection.setStyle("-fx-text-fill: green;");
     });
   }
 }

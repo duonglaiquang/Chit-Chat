@@ -1,15 +1,10 @@
 package Client;
 
 import ChatRoom.ChatRoom;
-import Client.Controller.ChatController;
 import Client.Controller.CreateRoomModalController;
 import Client.Controller.RoomListController;
 import Client.Controller.RootController;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.Socket;
@@ -17,7 +12,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
-
 
 public class Client {
   public Socket s;
@@ -31,11 +25,9 @@ public class Client {
 
   private List<ChatRoom> createData() {
     List<ChatRoom> data = new ArrayList<>(50);
-
     for (int i = 0; i < 50; i++) {
       data.add(new ChatRoom(i, "abc", "asdasdasd"));
     }
-
     return data;
   }
 
@@ -92,6 +84,15 @@ public class Client {
                   rc.changeScene("root");
                   break;
 
+                case "Stranger_Disconnected":
+                  Main.cc.showSystemMessage("Stranger Has Left The Chat!");
+                  break;
+
+                case "Connected":
+                  Main.connected = true;
+                  Main.rc.updateConnectionStatus();
+                  break;
+
                 case "Room_Created":
                   System.out.println("Room Created!");
                   String id = st.nextToken();
@@ -111,12 +112,12 @@ public class Client {
             } else {
               System.out.println(strReceived);
               Main.cc.addMessage(strReceived, true);
-//              Platform.runLater(() -> Main.cc.addMessage(strReceived, true));
             }
           } else {
-            System.out.println("aaa");
+            System.out.println("Room Info Received");
             if (objReceived instanceof LinkedList) {
               int roomCount = ((LinkedList) objReceived).size();
+              System.out.println(roomCount);
               FXMLLoader loader = new FXMLLoader(getClass().getResource("View/roomList.fxml"));
               loader.load();
               RoomListController roomListController = loader.getController();

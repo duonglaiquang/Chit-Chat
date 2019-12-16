@@ -2,11 +2,19 @@
     -fx-border-width: 1px;
     -fx-padding: 5px;
     -fx-background-radius: 5px;
+    -fx-font-family: Arial;
 }
 .receive {
     -fx-background-color: white;
 }
-
 .send {
     -fx-background-color: #53a1ff;
+}
+.system-grey{
+    -fx-text-fill: #000000b1;
+    -fx-font-style: italic;
+    -fx-alignment: CENTER;
+    -fx-content-display: CENTER;
+    -fx-pref-height: 24px;
+    -fx-pref-width: 585px;
 }

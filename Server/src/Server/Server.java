@@ -90,7 +90,7 @@ public class Server {
     }
   }
 
-  public static void loadRoomList(Socket s, ObjectOutputStream oos) throws IOException {
+  public static void loadRoomList(ObjectOutputStream oos) throws IOException {
     if (roomCount == 0) {
       oos.writeObject("server#No_Room_Available");
     } else {
@@ -106,11 +106,14 @@ public class Server {
       ObjectOutputStream os = oosOf.get(socket);
       pair.remove(s);
       pair.remove(socket);
-      os.writeObject("server#Stranger has left the chat!\nReturning to main screen...");
-      oos.writeObject("server#Stranger has left the chat!\nReturning to main screen...");
+      os.writeObject("server#Stranger_Disconnected");
+      oos.writeObject("server#Disconnected");
       os.flush();
       oos.flush();
-      loadRoomList(socket, oos);
+      userCount--;
+
+      //TODO remove tag queue
+//      loadRoomList(oos);
     } else if (currentRoom.get(s) != null) {
       room = currentRoom.get(s);
       if (room.clientCount == 1) {
@@ -204,7 +207,7 @@ public class Server {
           break;
 
         case "roomls":
-          loadRoomList(s, oos);
+          loadRoomList(oos);
           break;
 
         default:
@@ -214,13 +217,13 @@ public class Server {
       try {
         if (pair.get(s) != null) {
           ObjectOutputStream os = oosOf.get(pair.get(s));
-          os.writeObject("Stranger: " + str);
+          os.writeObject(str);
         } else {
           room = currentRoom.get(s);
           for (Socket socket : room.sockets) {
             if (!socket.equals(s)) {
               ObjectOutputStream os = oosOf.get(socket);
-              os.writeObject("Stranger: " + str);
+              os.writeObject(str);
             }
           }
         }
