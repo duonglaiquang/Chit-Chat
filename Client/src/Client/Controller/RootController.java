@@ -50,11 +50,9 @@ public class RootController {
   public void showRoom() throws IOException {
     if(Main.connected){
       Main.client.request("roomls");
-//      newStage("roomList", "Room List");
-      changeScene("roomList");
     }
   }
-//
+
   public void changeScene(String name) throws IOException {
     FXMLLoader fXMLLoader = new FXMLLoader();
     fXMLLoader.setLocation(getClass().getResource("../View/" + name + ".fxml"));
@@ -65,10 +63,6 @@ public class RootController {
       rc.updateConnectionStatus();
       Platform.runLater(rc::init);
     }
-//    if(name.equals("roomList")){
-//      RoomListController rc = fXMLLoader.getController();
-//      Platform.runLater(rc::init);
-//    }
     Platform.runLater(() -> stage.setScene(scene));
   }
 

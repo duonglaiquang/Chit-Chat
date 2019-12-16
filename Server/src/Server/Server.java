@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
@@ -16,7 +17,7 @@ public class Server {
   final static String[] tags = {"game", "movie", "book", "music", "random"};
 
   static HashMap<Socket, ObjectOutputStream> oosOf = new HashMap<>();
-  static LinkedList<ChatRoom> rooms = new LinkedList<>();
+  static ArrayList<ChatRoom> rooms = new ArrayList<>();
   static HashMap<String, LinkedList<Socket>> searching = new HashMap<>();
   static HashMap<Socket, ChatRoom> currentRoom = new HashMap<>();
   static HashMap<Socket, Socket> pair = new HashMap<>();
@@ -204,6 +205,10 @@ public class Server {
           }
           createRoom(s, oos, name, description);
           System.out.println("Room Created!");
+          break;
+
+        case "joinRoom":
+          int id = Integer.parseInt(st.nextToken());
           break;
 
         case "roomls":

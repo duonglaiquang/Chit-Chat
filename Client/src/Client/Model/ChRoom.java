@@ -4,13 +4,13 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 
-public class ChatRoom {
+public class ChRoom {
   private ObservableValue<Integer> id;
   private ObservableValue<Integer> clientCount;
   private SimpleStringProperty name;
   private SimpleStringProperty description;
 
-  public ChatRoom(int id, int clientCount, String name, String description) {
+  public ChRoom(int id, int clientCount, String name, String description) {
     this.id = new SimpleObjectProperty<>(id);
     this.clientCount = new SimpleObjectProperty<>(clientCount);
     this.name = new SimpleStringProperty(name);
