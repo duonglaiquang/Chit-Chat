@@ -1,6 +1,7 @@
 package Server;
 
 import ChatRoom.ChatRoom;
+import ChatRoom.Color;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -12,9 +13,7 @@ import java.util.LinkedList;
 import java.util.StringTokenizer;
 
 public class Server {
-  final static String[] commands = {"cmd-create-<room_name>", "cmd-join-<room_id>", "cmd-match-<#tag1#tag2#tag3>", "cmd-status",
-      "cmd-roomls", "cmd-ls", "cmd-leave", "cmd-quit"};
-  final static String[] tags = {"game", "movie", "book", "music", "random"};
+  final static String[] tags = {"game", "movie", "book", "music", "boy", "girl", "random"};
 
   static HashMap<Socket, ObjectOutputStream> oosOf = new HashMap<>();
   static ArrayList<ChatRoom> rooms = new ArrayList<>();
@@ -140,23 +139,44 @@ public class Server {
     room.sockets.add(s);
     rooms.add(room);
     currentRoom.put(s, room);
-    oos.writeObject("server#Room_Created#" + roomCount + "#" + name + "#" + description);
+    String color = colorPicker(room);
+    room.colorOf.put(s, color);
+    oos.writeObject("server#Room_Created#" + color);
     oos.flush();
     roomCount++;
   }
 
-  public static void joinRoom(Socket s, Integer id) throws IOException {
-    ChatRoom room = rooms.get(id);
-    ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
-    room.clientCount++;
-    for (Socket socket : room.sockets) {
-      ObjectOutputStream os = oosOf.get(socket);
-      os.writeObject("server#StrangerJoined");
+  public static String colorPicker(ChatRoom room) {
+    Color color = null;
+    for (int i = 0; i < ChatRoom.MAX_CLIENT; i++) {
+      if (room.color[i].isAvailable()) {
+        room.color[i].setAvailable(false);
+        color = room.color[i];
+        break;
+      }
     }
-    room.sockets.add(s);
-    currentRoom.put(s, room);
-    oos.writeObject("server#RoomJoined");
-    oos.flush();
+    return color.getName();
+  }
+
+  public static void joinRoom(Socket s, ObjectOutputStream oos, Integer id) throws IOException {
+    ChatRoom room = rooms.get(id);
+    if (room.clientCount < ChatRoom.MAX_CLIENT) {
+      room.sockets.add(s);
+      room.clientCount++;
+      currentRoom.put(s, room);
+      String color = colorPicker(room);
+      room.colorOf.put(s, color);
+      for (Socket socket : room.sockets) {
+        if(!socket.equals(s)){
+          ObjectOutputStream os = oosOf.get(socket);
+          os.writeObject("server#Stranger_Joined");
+        }
+      }
+      oos.writeObject("server#Room_Joined#" + color);
+      oos.flush();
+    } else {
+      oos.writeObject("server#Room_Full");
+    }
   }
 
 //  public static void leave(Socket s) throws IOException {
@@ -209,6 +229,7 @@ public class Server {
 
         case "joinRoom":
           int id = Integer.parseInt(st.nextToken());
+          joinRoom(s, oos, id);
           break;
 
         case "roomls":
@@ -228,7 +249,7 @@ public class Server {
           for (Socket socket : room.sockets) {
             if (!socket.equals(s)) {
               ObjectOutputStream os = oosOf.get(socket);
-              os.writeObject(str);
+              os.writeObject(str+"#"+room.colorOf.get(s));
             }
           }
         }

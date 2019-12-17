@@ -33,15 +33,6 @@ public class RootController {
     Main.client.request("cancel");
   }
 
-  public void matched() throws IOException {
-    FXMLLoader fXMLLoader = new FXMLLoader();
-    fXMLLoader.setLocation(getClass().getResource("../View/chatBox.fxml"));
-    Scene scene = new Scene(fXMLLoader.load(), 600, 400);
-    Main.cc = fXMLLoader.getController();
-    Stage stage = Main.homeStage;
-    Platform.runLater(() -> stage.setScene(scene));
-  }
-
   public void createRoom() throws IOException {
     if(Main.connected)
       newStage("createRoomModal", "Create Room");
@@ -62,6 +53,9 @@ public class RootController {
       RootController rc = fXMLLoader.getController();
       rc.updateConnectionStatus();
       Platform.runLater(rc::init);
+    }
+    if(name.equals("chatBox")){
+      Main.cc = fXMLLoader.getController();
     }
     Platform.runLater(() -> stage.setScene(scene));
   }

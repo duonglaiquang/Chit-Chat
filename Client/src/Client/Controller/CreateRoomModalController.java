@@ -23,13 +23,13 @@ public class CreateRoomModalController {
     Main.client.request("createRoom#" + name.getText() + "#" + description.getText());
   }
 
-  public void roomCreated(String id, String rName, String rDescription) throws IOException {
+  public void roomCreated() throws IOException {
     Stage stage = Main.currentStage;
     Platform.runLater(stage::close);
-//    String hidden = id + "#" + rName + "#" + rDescription;
     FXMLLoader loader = new FXMLLoader(getClass().getResource("../View/root.fxml"));;
     loader.load();
     RootController rc = loader.getController();
-    rc.newStage("chatBox", "Chat Room : " + rName);
+//    rc.newStage("chatBox", "Chat Room : " + rName)
+    rc.changeScene("chatBox");
   }
 }

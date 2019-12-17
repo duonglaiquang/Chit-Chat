@@ -86,7 +86,7 @@ public class RoomListController{
               System.out.println("selectedData: " + id);
               //TODO join room
               try {
-                Main.client.request("joinRoom#"+id);
+                Main.client.request("joinRoom#"+(id-1));
               } catch (IOException e) {
                 e.printStackTrace();
               }
