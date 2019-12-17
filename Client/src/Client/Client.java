@@ -65,6 +65,7 @@ public class Client {
                   System.out.println("Client Matched!");
                   rc = new RootController();
                   rc.changeScene("chatBox");
+                  Main.cc.init("Stranger");
                   break;
 
                 case "Searching":
@@ -78,6 +79,10 @@ public class Client {
 
                 case "Stranger_Disconnected":
                   Main.cc.showSystemMessage("Stranger Has Left The Chat!", true);
+                  break;
+
+                case "Chat_Left":
+                  rc.changeScene("root");
                   break;
 
                 case "Connected":
@@ -119,8 +124,8 @@ public class Client {
                   Main.cc.showSystemMessage("You are <" + color.toUpperCase() +">", false);
                   break;
 
-                case "Room_Leaved":
-                  System.out.println("Room Leaved");
+                case "Room_Left":
+                  System.out.println("Room Left");
                   request("roomls");
                   break;
 

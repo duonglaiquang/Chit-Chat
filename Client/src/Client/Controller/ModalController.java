@@ -38,7 +38,7 @@ public class ModalController {
   }
 
   public void leaveRoom() throws IOException {
-    Main.client.request("leaveRoom");
+    Main.client.request("leaveChat");
     Stage stage = Main.currentStage;
     Platform.runLater(stage::close);
   }
