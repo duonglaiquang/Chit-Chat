@@ -19,9 +19,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ChatController {
+  @FXML private Label title;
   @FXML private ScrollPane chatscroll;
   @FXML private VBox chatbox;
   @FXML private TextField message;
+
+  public void init(String roomName) {
+    Platform.runLater(()->{
+      title.setText(roomName);
+    });
+  }
 
   public void submit() throws FileNotFoundException {
     String str = message.getText();
@@ -31,7 +38,7 @@ public class ChatController {
       e.printStackTrace();
     }
     message.clear();
-    addMessage(str, false, null); //TODO
+    addMessage(str, false, null);
   }
 
   public void showSystemMessage(String msg, Boolean button){
@@ -107,5 +114,10 @@ public class ChatController {
       chatscroll.vvalueProperty().bind(chatbox.heightProperty());
       chatscroll.setFitToWidth(true);
     });
+  }
+
+  public void leave() throws IOException {
+    RootController rc = new RootController();
+    rc.newStage("confirm", "Confirm", null);
   }
 }
