@@ -9,10 +9,15 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class CreateRoomModalController {
+public class ModalController {
+  @FXML private Label warningLb;
   @FXML private Button cancelBtn;
   @FXML private TextField name;
   @FXML private TextArea description;
+
+  public void init(String warning) {
+    Platform.runLater(()->warningLb.setText(warning));
+  }
 
   public void cancel() {
     Stage stage = (Stage) cancelBtn.getScene().getWindow();
@@ -29,7 +34,12 @@ public class CreateRoomModalController {
     FXMLLoader loader = new FXMLLoader(getClass().getResource("../View/root.fxml"));;
     loader.load();
     RootController rc = loader.getController();
-//    rc.newStage("chatBox", "Chat Room : " + rName)
     rc.changeScene("chatBox");
+  }
+
+  public void leaveRoom() throws IOException {
+    Main.client.request("leaveRoom");
+    Stage stage = Main.currentStage;
+    Platform.runLater(stage::close);
   }
 }

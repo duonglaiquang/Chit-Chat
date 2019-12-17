@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="155.0" prefWidth="300.0"
-            xmlns="http://javafx.com/javafx/10.0.2-internal" fx:controller="Client.Controller.CreateRoomModalController">
+            xmlns="http://javafx.com/javafx/10.0.2-internal" fx:controller="Client.Controller.ModalController">
     <Button fx:id="cancelBtn" layoutX="187.0" layoutY="113.0" mnemonicParsing="false" onMouseClicked="#cancel"
             prefHeight="29.0" prefWidth="99.0" text="Cancel">
         <font>

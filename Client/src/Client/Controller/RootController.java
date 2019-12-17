@@ -35,7 +35,7 @@ public class RootController {
 
   public void createRoom() throws IOException {
     if(Main.connected)
-      newStage("createRoomModal", "Create Room");
+      newStage("createRoomModal", "Create Room", null);
   }
 
   public void showRoom() throws IOException {
@@ -60,10 +60,14 @@ public class RootController {
     Platform.runLater(() -> stage.setScene(scene));
   }
 
-  public void newStage(String name, String title) throws IOException {
+  public void newStage(String name, String title, String message) throws IOException {
     FXMLLoader fXMLLoader = new FXMLLoader();
     fXMLLoader.setLocation(getClass().getResource("../View/" + name + ".fxml"));
     Scene scene = new Scene(fXMLLoader.load());
+    if (name.equals("warning")) {
+      ModalController mc = fXMLLoader.getController();
+      mc.init(message);
+    }
     Platform.runLater(() -> {
       Stage stage = new Stage();
       stage.setScene(scene);

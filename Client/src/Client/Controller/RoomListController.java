@@ -19,7 +19,7 @@ public class RoomListController{
   private static int dataSize;
   private TableView<ChRoom> table;
   private List<ChRoom> chatRoom;
-  private static int rowsPerPage = 10;
+  private static int rowsPerPage = 5;
 
   public void init(Object obj) {
     dataSize = ((ArrayList) obj).size();
@@ -84,7 +84,6 @@ public class RoomListController{
               ChRoom chatRoom = getTableView().getItems().get(getIndex());
               int id = chatRoom.getId();
               System.out.println("selectedData: " + id);
-              //TODO join room
               try {
                 Main.client.request("joinRoom#"+(id-1));
               } catch (IOException e) {
@@ -108,5 +107,10 @@ public class RoomListController{
     };
     colBtn.setCellFactory(cellFactory);
     table.getColumns().add(colBtn);
+  }
+
+  public void back() throws IOException {
+    RootController rc = new RootController();
+    rc.changeScene("root");
   }
 }

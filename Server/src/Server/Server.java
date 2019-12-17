@@ -141,7 +141,7 @@ public class Server {
     currentRoom.put(s, room);
     String color = colorPicker(room);
     room.colorOf.put(s, color);
-    oos.writeObject("server#Room_Created#" + color);
+    oos.writeObject("server#Room_Created#" + color + "#" + name);
     oos.flush();
     roomCount++;
   }
@@ -167,16 +167,43 @@ public class Server {
       String color = colorPicker(room);
       room.colorOf.put(s, color);
       for (Socket socket : room.sockets) {
-        if(!socket.equals(s)){
+        if (!socket.equals(s)) {
           ObjectOutputStream os = oosOf.get(socket);
           os.writeObject("server#Stranger_Joined");
         }
       }
-      oos.writeObject("server#Room_Joined#" + color);
+      oos.writeObject("server#Room_Joined#" + color + "#" + room.name);
       oos.flush();
     } else {
       oos.writeObject("server#Room_Full");
     }
+  }
+
+
+  private static void leaveRoom(Socket s, ObjectOutputStream oos) throws IOException {
+    ChatRoom room = currentRoom.get(s);
+    if (room.clientCount == 1) {
+      rooms.remove(room);
+      roomCount--;
+    } else {
+      room.clientCount--;
+      room.sockets.remove(s);
+      String colorName = room.colorOf.get(s);
+      for (int i = 0; i < ChatRoom.MAX_CLIENT; i++) {
+        if (room.color[i].getName().equals(colorName)) {
+          room.color[i].setAvailable(true);
+          break;
+        }
+      }
+      room.colorOf.remove(s);
+      for (Socket socket : room.sockets) {
+        ObjectOutputStream os = oosOf.get(socket);
+        os.writeObject("server#Stranger_Left");
+      }
+    }
+    currentRoom.remove(s);
+    oos.writeObject("server#Room_Leaved");
+    oos.flush();
   }
 
 //  public static void leave(Socket s) throws IOException {
@@ -236,6 +263,10 @@ public class Server {
           loadRoomList(oos);
           break;
 
+        case "leaveRoom":
+          leaveRoom(s, oos);
+          break;
+
         default:
           oos.writeObject("server#Wrong Request Command!");
       }
@@ -249,7 +280,7 @@ public class Server {
           for (Socket socket : room.sockets) {
             if (!socket.equals(s)) {
               ObjectOutputStream os = oosOf.get(socket);
-              os.writeObject(str+"#"+room.colorOf.get(s));
+              os.writeObject(str + "#" + room.colorOf.get(s));
             }
           }
         }

@@ -1,6 +1,6 @@
 package Client;
 
-import Client.Controller.CreateRoomModalController;
+import Client.Controller.ModalController;
 import Client.Controller.RoomListController;
 import Client.Controller.RootController;
 import javafx.application.Platform;
@@ -59,7 +59,7 @@ public class Client {
             if (from.equals("server")) {
               String response = st.nextToken();
               RootController rc = new RootController();
-              CreateRoomModalController mc = new CreateRoomModalController();
+              ModalController mc = new ModalController();
               switch (response) {
                 case "Matched":
                   System.out.println("Client Matched!");
@@ -90,27 +90,42 @@ public class Client {
                   Main.cc.showSystemMessage("Stranger has joined the chat!", false);
                   break;
 
+                case "Stranger_Left":
+                  Main.cc.showSystemMessage("Stranger has left the chat!", false);
+                  break;
+
                 case "Room_Created":
                   System.out.println("Room Created!");
                   color = st.nextToken();
+                  String roomName = st.nextToken();
                   mc.roomCreated();
+                  Main.cc.init(roomName);
                   Main.cc.showSystemMessage("You are <" + color.toUpperCase() +">", false);
                   break;
 
                 case "No_Room_Available":
                   System.out.println("No Room Available!");
+                  rc.changeScene("root");
+                  rc.newStage("warning", "Warning", "Room List Empty!");
                   break;
 
                 case "Room_Joined":
                   System.out.println("Room Joined!");
                   color = st.nextToken();
+                  String room = st.nextToken();
                   rc = new RootController();
                   rc.changeScene("chatBox");
+                  Main.cc.init(room);
                   Main.cc.showSystemMessage("You are <" + color.toUpperCase() +">", false);
                   break;
 
+                case "Room_Leaved":
+                  System.out.println("Room Leaved");
+                  request("roomls");
+                  break;
+
                 case "Room_Full":
-                  //TODO
+                  rc.newStage("warning", "Warning", "Room Full!");
                   break;
 
                 default:
@@ -121,7 +136,7 @@ public class Client {
               System.out.println(strReceived);
               if(st.hasMoreTokens()){
                 String strangerColor = st.nextToken();
-                Main.cc.addMessage(from, true, strangerColor); //TODO
+                Main.cc.addMessage(from, true, strangerColor);
               } else {
                 Main.cc.addMessage(from, true, null);
               }
