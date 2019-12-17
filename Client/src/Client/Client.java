@@ -1,34 +1,26 @@
 package Client;
 
-import ChatRoom.ChatRoom;
 import Client.Controller.CreateRoomModalController;
 import Client.Controller.RoomListController;
 import Client.Controller.RootController;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.StringTokenizer;
 
 public class Client {
   public Socket s;
   public ObjectOutputStream oos;
   public ObjectInputStream ois;
-  List<ChatRoom> data = createData();
+  public String color = null;
 
   public void request(String action) throws IOException {
     oos.writeObject("request#" + action);
-  }
-
-  private List<ChatRoom> createData() {
-    List<ChatRoom> data = new ArrayList<>(50);
-    for (int i = 0; i < 50; i++) {
-      data.add(new ChatRoom(i, "abc", "asdasdasd"));
-    }
-    return data;
   }
 
   public void start() throws IOException {
@@ -72,7 +64,7 @@ public class Client {
                 case "Matched":
                   System.out.println("Client Matched!");
                   rc = new RootController();
-                  rc.matched();
+                  rc.changeScene("chatBox");
                   break;
 
                 case "Searching":
@@ -85,7 +77,7 @@ public class Client {
                   break;
 
                 case "Stranger_Disconnected":
-                  Main.cc.showSystemMessage("Stranger Has Left The Chat!");
+                  Main.cc.showSystemMessage("Stranger Has Left The Chat!", true);
                   break;
 
                 case "Connected":
@@ -93,16 +85,32 @@ public class Client {
                   Main.rc.updateConnectionStatus();
                   break;
 
+                case "Stranger_Joined":
+                  System.out.println("Stranger Joined!");
+                  Main.cc.showSystemMessage("Stranger has joined the chat!", false);
+                  break;
+
                 case "Room_Created":
                   System.out.println("Room Created!");
-                  String id = st.nextToken();
-                  String name = st.nextToken();
-                  String description = st.nextToken();
-                  mc.roomCreated(id, name, description);
+                  color = st.nextToken();
+                  mc.roomCreated();
+                  Main.cc.showSystemMessage("You are <" + color.toUpperCase() +">", false);
                   break;
 
                 case "No_Room_Available":
                   System.out.println("No Room Available!");
+                  break;
+
+                case "Room_Joined":
+                  System.out.println("Room Joined!");
+                  color = st.nextToken();
+                  rc = new RootController();
+                  rc.changeScene("chatBox");
+                  Main.cc.showSystemMessage("You are <" + color.toUpperCase() +">", false);
+                  break;
+
+                case "Room_Full":
+                  //TODO
                   break;
 
                 default:
@@ -111,18 +119,25 @@ public class Client {
               }
             } else {
               System.out.println(strReceived);
-              Main.cc.addMessage(strReceived, true);
+              if(st.hasMoreTokens()){
+                String strangerColor = st.nextToken();
+                Main.cc.addMessage(from, true, strangerColor); //TODO
+              } else {
+                Main.cc.addMessage(from, true, null);
+              }
             }
           } else {
             System.out.println("Room Info Received");
-            if (objReceived instanceof LinkedList) {
-              int roomCount = ((LinkedList) objReceived).size();
-              System.out.println(roomCount);
-              FXMLLoader loader = new FXMLLoader(getClass().getResource("View/roomList.fxml"));
-              loader.load();
-              RoomListController roomListController = loader.getController();
-//              roomList = new ArrayList<ChatRoom>((LinkedList) objReceived);
-            }
+            if (objReceived instanceof ArrayList) {
+              System.out.println(true);
+              FXMLLoader fXMLLoader = new FXMLLoader();
+              fXMLLoader.setLocation(getClass().getResource("View/roomList.fxml"));
+              Scene scene = new Scene(fXMLLoader.load(), 600, 400);
+              Stage stage = Main.homeStage;
+              RoomListController rc = fXMLLoader.getController();
+              rc.init(objReceived);
+              Platform.runLater(() -> stage.setScene(scene));
+            } else System.out.println(false);
           }
 //            }
         }

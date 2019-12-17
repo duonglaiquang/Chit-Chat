@@ -22,8 +22,6 @@ public class ChatController {
   @FXML private ScrollPane chatscroll;
   @FXML private VBox chatbox;
   @FXML private TextField message;
-  @FXML private Label topLabel;
-  @FXML private TextField property;
 
   public void submit() throws FileNotFoundException {
     String str = message.getText();
@@ -33,45 +31,51 @@ public class ChatController {
       e.printStackTrace();
     }
     message.clear();
-    addMessage(str, false);
+    addMessage(str, false, null); //TODO
   }
 
-  public void showSystemMessage(String msg){
+  public void showSystemMessage(String msg, Boolean button){
     Label label = new Label(msg);
     label.getStyleClass().add("system-grey");
     label.getStylesheets().add(getClass().getResource("../Assets/css/chatBox.css").toExternalForm());
-    Button rematchBtn = new Button("Rematch");
-    rematchBtn.setOnAction(event -> {
-      RootController rc = new RootController();
-      try {
-        rc.matched();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
+    HBox hBox = null;
+    if(button) {
+      Button rematchBtn = new Button("Rematch");
+      rematchBtn.setOnAction(event -> {
+        RootController rc = new RootController();
+        try {
+          rc.match();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      });
 
-    Button backBtn = new Button("Back");
-    backBtn.setOnAction(event -> {
-      RootController rc = new RootController();
-      try {
-        rc.changeScene("root");
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
+      Button backBtn = new Button("Back");
+      backBtn.setOnAction(event -> {
+        RootController rc = new RootController();
+        try {
+          rc.changeScene("root");
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      });
 
-    HBox hBox = new HBox(15, rematchBtn, backBtn);
-    hBox.setAlignment(Pos.TOP_CENTER);
+      hBox = new HBox(15, rematchBtn, backBtn);
+      hBox.setAlignment(Pos.TOP_CENTER);
+    }
+    HBox finalHBox = hBox;
     Platform.runLater(()->{
       chatbox.getChildren().add(label);
-      chatbox.getChildren().add(hBox);
+      if(button) {
+        chatbox.getChildren().add(finalHBox);
+      }
       chatbox.setSpacing(10);
       chatscroll.vvalueProperty().bind(chatbox.heightProperty());
       chatscroll.setFitToWidth(true);
     });
   }
 
-  public void addMessage(String msg, Boolean left) throws FileNotFoundException {
+  public void addMessage(String msg, Boolean left, String color) throws FileNotFoundException {
     Label label = new Label(msg);
     label.getStylesheets().add(getClass().getResource("../Assets/css/chatBox.css").toExternalForm());
     label.getStyleClass().add("chat-bubble");
@@ -84,7 +88,11 @@ public class ChatController {
     HBox hBox;
     if(left){
       hBox=new HBox(imageView, label);
-      label.getStyleClass().add("receive");
+      if(color != null){
+        label.setStyle("-fx-background-color: " + color);
+      } else {
+        label.getStyleClass().add("receive");
+      }
       hBox.setAlignment(Pos.CENTER_LEFT);
       HBox.setMargin(imageView, new Insets(0, 0, 0, 10));
     } else {
