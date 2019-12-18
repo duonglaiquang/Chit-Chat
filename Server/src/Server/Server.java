@@ -187,7 +187,6 @@ public class Server {
   }
 
   public static void checkCommand(String str, Socket s, ObjectOutputStream oos) throws IOException {
-    ChatRoom room;
     StringTokenizer st = new StringTokenizer(str, "#");
     String cmd = st.nextToken();
     if (cmd.equals("request")) {
@@ -240,21 +239,25 @@ public class Server {
           oos.writeObject("server#Wrong Request Command!");
       }
     } else {
-      try {
-        if (pair.get(s) != null) {
-          ObjectOutputStream os = oosOf.get(pair.get(s));
-          os.writeObject(str);
-        } else {
-          room = currentRoom.get(s);
-          for (Socket socket : room.sockets) {
-            if (!socket.equals(s)) {
-              ObjectOutputStream os = oosOf.get(socket);
-              os.writeObject(str + "#" + room.colorOf.get(s));
-            }
+      transportMsg(s, str);
+    }
+  }
+
+  public static void transportMsg(Socket s, Object obj) throws IOException, NullPointerException {
+    if (pair.get(s) != null) {
+      ObjectOutputStream os = oosOf.get(pair.get(s));
+      os.writeObject(obj);
+    } else {
+      ChatRoom room = currentRoom.get(s);
+      for (Socket socket : room.sockets) {
+        if (!socket.equals(s)) {
+          ObjectOutputStream os = oosOf.get(socket);
+          if(obj instanceof String){
+            os.writeObject(obj + "#" + room.colorOf.get(s));
+          } else {
+            os.writeObject(obj);
           }
         }
-      } catch (IOException | NullPointerException e) {
-        e.printStackTrace();
       }
     }
   }

@@ -1,14 +1,19 @@
 package Client;
 
+import ChatRoom.SerializableImage;
 import Client.Controller.ModalController;
 import Client.Controller.RoomListController;
 import Client.Controller.RootController;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-import java.io.*;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
@@ -21,36 +26,24 @@ public class Client {
 
   public void request(String action) throws IOException {
     oos.writeObject("request#" + action);
+    oos.flush();
+  }
+
+  public void sendImage(Image image) throws IOException {
+    SerializableImage img = new SerializableImage();
+    img.setImage(image);
+    oos.writeObject(img);
+    oos.flush();
   }
 
   public void start() throws IOException {
-    //create socket and get ip
     s = new Socket("192.168.110.122", 1234);
     oos = new ObjectOutputStream(s.getOutputStream());
     ois = new ObjectInputStream(s.getInputStream());
-    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-    //create sender thread
-    Thread thSender = new Thread(() -> {
-      try {
-        while (true) {
-//            synchronized (this) {
-          //scan new message to send
-          String strSend = br.readLine();
-          if (strSend != null) {
-            oos.writeObject(strSend);
-            oos.flush();
-          }
-//            }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    });
 
     Thread thReceiver = new Thread(() -> {
       try {
         while (true) {
-//            synchronized (this) {
           Object objReceived = ois.readObject();
           if (objReceived instanceof String) {
             String strReceived = (String) objReceived;
@@ -105,7 +98,7 @@ public class Client {
                   String roomName = st.nextToken();
                   mc.roomCreated();
                   Main.cc.init(roomName);
-                  Main.cc.showSystemMessage("You are <" + color.toUpperCase() +">", false);
+                  Main.cc.showSystemMessage("You are <" + color.toUpperCase() + ">", false);
                   break;
 
                 case "No_Room_Available":
@@ -121,7 +114,7 @@ public class Client {
                   rc = new RootController();
                   rc.changeScene("chatBox");
                   Main.cc.init(room);
-                  Main.cc.showSystemMessage("You are <" + color.toUpperCase() +">", false);
+                  Main.cc.showSystemMessage("You are <" + color.toUpperCase() + ">", false);
                   break;
 
                 case "Room_Left":
@@ -139,27 +132,26 @@ public class Client {
               }
             } else {
               System.out.println(strReceived);
-              if(st.hasMoreTokens()){
+              if (st.hasMoreTokens()) {
                 String strangerColor = st.nextToken();
                 Main.cc.addMessage(from, true, strangerColor);
               } else {
                 Main.cc.addMessage(from, true, null);
               }
             }
+          } else if (objReceived instanceof ArrayList) {
+            FXMLLoader fXMLLoader = new FXMLLoader();
+            fXMLLoader.setLocation(getClass().getResource("View/roomList.fxml"));
+            Scene scene = new Scene(fXMLLoader.load(), 600, 400);
+            Stage stage = Main.homeStage;
+            RoomListController rc = fXMLLoader.getController();
+            rc.init(objReceived);
+            Platform.runLater(() -> stage.setScene(scene));
           } else {
-            System.out.println("Room Info Received");
-            if (objReceived instanceof ArrayList) {
-              System.out.println(true);
-              FXMLLoader fXMLLoader = new FXMLLoader();
-              fXMLLoader.setLocation(getClass().getResource("View/roomList.fxml"));
-              Scene scene = new Scene(fXMLLoader.load(), 600, 400);
-              Stage stage = Main.homeStage;
-              RoomListController rc = fXMLLoader.getController();
-              rc.init(objReceived);
-              Platform.runLater(() -> stage.setScene(scene));
-            } else System.out.println(false);
+            SerializableImage image = (SerializableImage) objReceived;
+            Image img = image.getImage();
+            Main.cc.addImage(img, true);
           }
-//            }
         }
       } catch (EOFException e) {
         System.out.println("Disconnected!");
@@ -168,7 +160,6 @@ public class Client {
       }
     });
 
-    thSender.start();
     thReceiver.start();
   }
 }
