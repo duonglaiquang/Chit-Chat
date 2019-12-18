@@ -14,8 +14,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RoomListController{
-  @FXML private Pagination pagination;
+public class RoomListController {
+  @FXML
+  private Pagination pagination;
   private static int dataSize;
   private TableView<ChRoom> table;
   private List<ChRoom> chatRoom;
@@ -26,6 +27,8 @@ public class RoomListController{
     chatRoom = createData(obj);
     table = createTable();
     pagination.setPageFactory(this::createPage);
+    pagination.setPageCount(dataSize / rowsPerPage + 1);
+    pagination.setMaxPageIndicatorCount(10);
     addButtonToTable();
   }
 
@@ -33,8 +36,8 @@ public class RoomListController{
   private List<ChRoom> createData(Object obj) {
     List<ChRoom> chatRoom = new ArrayList<>(dataSize);
     for (int i = 0; i < dataSize; i++) {
-      ChatRoom object = (ChatRoom)((ArrayList) obj).get(i);
-      chatRoom.add(new ChRoom(i+1, object.clientCount, object.name, object.description));
+      ChatRoom object = (ChatRoom) ((ArrayList) obj).get(i);
+      chatRoom.add(new ChRoom(i + 1, object.clientCount, object.name, object.description));
     }
     return chatRoom;
   }
@@ -46,18 +49,22 @@ public class RoomListController{
     TableColumn<ChRoom, Integer> idColumn = new TableColumn<>("Id");
     idColumn.setCellValueFactory(param -> param.getValue().idProperty());
     idColumn.setPrefWidth(32);
+    idColumn.setStyle("-fx-alignment: CENTER-LEFT;");
 
     TableColumn<ChRoom, String> nameColumn = new TableColumn<>("Name");
     nameColumn.setCellValueFactory(param -> param.getValue().nameProperty());
     nameColumn.setPrefWidth(96);
+    nameColumn.setStyle("-fx-alignment: CENTER-LEFT;");
 
     TableColumn<ChRoom, String> descColumn = new TableColumn<>("Description");
     descColumn.setCellValueFactory(param -> param.getValue().descriptionProperty());
     descColumn.setPrefWidth(305);
+    descColumn.setStyle("-fx-alignment: CENTER-LEFT;");
 
     TableColumn<ChRoom, Integer> clientColumn = new TableColumn<>("Clients");
     clientColumn.setCellValueFactory(param -> param.getValue().clientCountProperty());
     clientColumn.setPrefWidth(79);
+    clientColumn.setStyle("-fx-alignment: CENTER-LEFT;");
 
     table.getColumns().addAll(idColumn, nameColumn, descColumn, clientColumn);
     return table;
@@ -79,13 +86,14 @@ public class RoomListController{
       public TableCell<ChRoom, Void> call(final TableColumn<ChRoom, Void> param) {
         final TableCell<ChRoom, Void> cell = new TableCell<>() {
           private Button btn = new Button("Join");
+
           {
             btn.setOnAction((ActionEvent event) -> {
               ChRoom chatRoom = getTableView().getItems().get(getIndex());
               int id = chatRoom.getId();
               System.out.println("selectedData: " + id);
               try {
-                Main.client.request("joinRoom#"+(id-1));
+                Main.client.request("joinRoom#" + (id - 1));
               } catch (IOException e) {
                 e.printStackTrace();
               }

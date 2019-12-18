@@ -28,6 +28,11 @@ public class Main extends Application {
   public void start(Stage primaryStage) throws Exception {
     homeStage = primaryStage;
     homeStage.setOnCloseRequest(e -> {
+      try {
+        client.request("disconnect");
+      } catch (IOException ex) {
+        ex.printStackTrace();
+      }
       Platform.exit();
       System.exit(0);
     });

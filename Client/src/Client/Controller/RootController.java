@@ -24,8 +24,9 @@ public class RootController {
 
   public void match() throws IOException, NullPointerException {
     if(Main.connected){
+      String tag = tagbox.getValue();
       changeScene("searching");
-      Main.client.request("match");
+      Main.client.request("match#"+tag);
     }
   }
 
