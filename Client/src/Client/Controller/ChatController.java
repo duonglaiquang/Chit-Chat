@@ -13,12 +13,15 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ChatController {
+  @FXML private ImageView attach;
   @FXML private Label title;
   @FXML private ScrollPane chatscroll;
   @FXML private VBox chatbox;
@@ -27,6 +30,7 @@ public class ChatController {
   public void init(String roomName) {
     Platform.runLater(()->{
       title.setText(roomName);
+      attach.setImage(new Image(new File("src/Client/Assets/images/attach.png").toURI().toString()));
     });
   }
 
@@ -119,5 +123,12 @@ public class ChatController {
   public void leave() throws IOException {
     RootController rc = new RootController();
     rc.newStage("confirm", "Confirm", null);
+  }
+
+  public void attachFile() {
+    //TODO
+    FileChooser fileChooser = new FileChooser();
+    File selectedFile = fileChooser.showOpenDialog(Main.homeStage);
+
   }
 }

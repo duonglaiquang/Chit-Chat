@@ -13,7 +13,7 @@ import java.util.LinkedList;
 import java.util.StringTokenizer;
 
 public class Server {
-  final static String[] tags = {"game", "movie", "book", "music", "boy", "girl", "random"};
+  final static String[] tags = {null, "game", "movie", "book", "music", "boy", "girl"};
 
   static HashMap<Socket, ObjectOutputStream> oosOf = new HashMap<>();
   static ArrayList<ChatRoom> rooms = new ArrayList<>();
