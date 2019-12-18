@@ -17,32 +17,32 @@ public class Server {
 
   static HashMap<Socket, ObjectOutputStream> oosOf = new HashMap<>();
   static ArrayList<ChatRoom> rooms = new ArrayList<>();
-  static HashMap<String, LinkedList<Socket>> searching = new HashMap<>();
   static HashMap<Socket, ChatRoom> currentRoom = new HashMap<>();
+  static HashMap<String, LinkedList<Socket>> searching = new HashMap<>();
+  static LinkedList<Socket> isSearching = new LinkedList<>();
   static HashMap<Socket, Socket> pair = new HashMap<>();
   static HashMap<Socket, Boolean> cancel = new HashMap<>();
   static int userCount = 0;
   static int roomCount = 0;
 
-  static void checkTag(Socket s, String tag) {
-    if (searching.get(tag) != null) {
-      searching.get(tag).add(s);
-    } else {
-      LinkedList<Socket> soc = new LinkedList<>();
-      soc.add(s);
-      searching.put(tag, soc);
-    }
-  }
-
   static void searchTag(Socket s, String tag, ObjectOutputStream oos) throws IOException {
-    checkTag(s, tag);
-    LinkedList<Socket> soc = searching.get(tag);
+    LinkedList<Socket> soc;
+    if (searching.get(tag) != null) {
+      soc = searching.get(tag);
+    } else {
+      soc = new LinkedList<>();
+    }
+    soc.add(s);
+    searching.put(tag, soc);
     if (soc.size() % 2 == 0) {
       Socket socket = soc.get(soc.size() - 2);
       pair.put(s, socket);
       pair.put(socket, s);
       soc.remove(s);
       soc.remove(socket);
+      isSearching.remove(s);
+      isSearching.remove(socket);
+      searching.put(tag, soc);
       System.out.println("2 Clients has been matched with each other!");
       oos.writeObject("server#Matched");
       oos.flush();
@@ -52,36 +52,25 @@ public class Server {
     }
   }
 
-  public static void cancelSearch(Socket s, ObjectOutputStream oos, String tags) throws IOException {
+  public static void cancelSearch(Socket s, ObjectOutputStream oos, String tag) throws IOException {
+    if (searching.get(tag).size() == 1) {
+      searching.remove(tag);
+    } else {
+      searching.get(tag).remove(s);
+    }
+    cancel.remove(s);
+    isSearching.remove(s);
     oos.writeObject("server#Search_Canceled");
     oos.flush();
-    if (tags != null) {
-      String[] tagArr = tags.split("#");
-      for (int i = 1; i < tagArr.length; i++) {
-        if (searching.get(tagArr[i]).size() == 1) {
-          searching.remove(tagArr[i]);
-        } else {
-          searching.get(tagArr[i]).remove(s);
-        }
-      }
-    } else {
-      searching.get(null).remove(s);
-    }
-    cancel.put(s, false);
   }
 
-  public static void match(Socket s, String tags, ObjectOutputStream oos) throws IOException, InterruptedException {
-    if (tags != null) {
-      String[] tagArr = tags.split("#");
-      for (int i = 1; i < tagArr.length; i++) {
-        searchTag(s, tagArr[i], oos);
-      }
-    } else {
-      searchTag(s, null, oos);
-    }
+  public static void match(Socket s, String tag, ObjectOutputStream oos) throws IOException, InterruptedException, NullPointerException {
+    isSearching.add(s);
+    cancel.put(s, false);
+    searchTag(s, tag, oos);
     while (pair.get(s) == null) {
       if (cancel.get(s)) {
-        cancelSearch(s, oos, tags);
+        cancelSearch(s, oos, tag);
         break;
       }
       oos.writeObject("server#Searching");
@@ -97,40 +86,6 @@ public class Server {
       oos.writeObject(rooms);
     }
     oos.flush();
-  }
-
-  public static void variablesCorrection(Socket s, ObjectOutputStream oos) throws IOException, NullPointerException {
-    ChatRoom room;
-    if (pair.get(s) != null) {
-      Socket socket = pair.get(s);
-      ObjectOutputStream os = oosOf.get(socket);
-      pair.remove(s);
-      pair.remove(socket);
-      os.writeObject("server#Stranger_Disconnected");
-      oos.writeObject("server#Disconnected");
-      os.flush();
-      oos.flush();
-      userCount--;
-
-      //TODO remove tag queue
-//      loadRoomList(oos);
-    } else if (currentRoom.get(s) != null) {
-      room = currentRoom.get(s);
-      if (room.clientCount == 1) {
-        rooms.remove(room);
-        roomCount--;
-      } else {
-        room.clientCount--;
-        room.sockets.remove(s);
-        for (Socket socket : room.sockets) {
-          ObjectOutputStream os = oosOf.get(socket);
-          os.writeObject("server#Stranger has left the chat.");
-        }
-      }
-      currentRoom.remove(s);
-      oos.writeObject("server#Leaved!");
-      oos.flush();
-    }
   }
 
   public static void createRoom(Socket s, ObjectOutputStream oos, String name, String description) throws IOException {
@@ -179,7 +134,7 @@ public class Server {
     }
   }
 
-  private static void leaveChat(Socket s, ObjectOutputStream oos) throws IOException {
+  public static void leaveChat(Socket s, ObjectOutputStream oos) throws IOException {
     if (pair.get(s) != null) {
       Socket socket = pair.get(s);
       ObjectOutputStream os = oosOf.get(socket);
@@ -190,7 +145,7 @@ public class Server {
       oos.writeObject("server#Chat_Left");
       os.flush();
       oos.flush();
-    } else {
+    } else if (currentRoom.get(s) != null) {
       ChatRoom room = currentRoom.get(s);
       if (room.clientCount == 1) {
         rooms.remove(room);
@@ -214,19 +169,18 @@ public class Server {
       currentRoom.remove(s);
       oos.writeObject("server#Room_Left");
       oos.flush();
+    } else {
+      if (isSearching.contains(s)) {
+        cancel.put(s, true);
+      }
     }
   }
 
-//  public static void leave(Socket s) throws IOException {
-//    variablesCorrection(s);
-//    loadRoomList(s);
-//    s.close();
-//  }
-//
-//  public static void quit(Socket s) throws IOException {
-//    variablesCorrection(s);
-//    s.close();
-//  }
+  public static void quit(Socket s, ObjectOutputStream oos) throws IOException {
+    leaveChat(s, oos);
+    userCount--;
+    System.out.println("User disconnected, Count updated: " + userCount);
+  }
 
   public static void getStatus() {
     //TODO
@@ -240,11 +194,12 @@ public class Server {
       String action = st.nextToken();
       switch (action) {
         case "match":
+          String tag = st.nextToken();
           Thread thMatch = new Thread(() -> {
             try {
-              match(s, null, oos);
-            } catch (IOException | InterruptedException e) {
-              e.printStackTrace();
+              match(s, tag, oos);
+            } catch (IOException | InterruptedException | NullPointerException e) {
+              System.out.println("Exception in matching!");
             }
           });
           thMatch.start();
@@ -278,6 +233,9 @@ public class Server {
           leaveChat(s, oos);
           break;
 
+        case "disconnect":
+          quit(s, oos);
+          break;
         default:
           oos.writeObject("server#Wrong Request Command!");
       }
@@ -310,8 +268,8 @@ public class Server {
         s = ss.accept();
         userCount++;
         System.out.println("New Client Connected At " + s);
+        System.out.println("Client count: "+userCount);
         ClientHandler handler = new ClientHandler(s);
-        cancel.put(s, false);
         Thread t = new Thread(handler);
         t.start();
       }

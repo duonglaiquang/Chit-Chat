@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.net.SocketException;
 
 public class ClientHandler implements Runnable {
   final ObjectOutputStream oos;
@@ -35,17 +34,18 @@ public class ClientHandler implements Runnable {
         }
 
       } catch (EOFException | NullPointerException e) {
-        Server.userCount--;
-        System.out.println("Client disconnected abruptly!");
-        try {
-          Server.variablesCorrection(s, oos);
-        } catch (IOException | NullPointerException ex) {
-          ex.printStackTrace();
-        }
-      } catch (SocketException e) {
         System.out.println("Client disconnected!");
+//        try {
+//          Server.leaveChat(s, oos);
+//        } catch (IOException ex) {
+//          System.out.println("Exception in correction method!");
+//        }
       } catch (IOException | ClassNotFoundException e) {
-        e.printStackTrace();
+//        try {
+//          Server.leaveChat(s, oos);
+//        } catch (IOException ex) {
+//          System.out.println("Exception in correction method!");
+//        }
       }
     });
 
