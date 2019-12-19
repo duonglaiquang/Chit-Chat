@@ -1,5 +1,9 @@
 package Server;
 
+import ChatRoom.SerializableImage;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -25,12 +29,17 @@ public class ClientHandler implements Runnable {
     thReceiver = new Thread(() -> {
       try {
         while (true) {
-//            synchronized (this) {
-          String strReceived;
-          strReceived = (String) ois.readObject();
-          System.out.println(strReceived);
-          Server.checkCommand(strReceived, s, oos);
-//            }
+          Object obj = ois.readObject();
+          if(obj != null) {
+            if (obj instanceof String) {
+              String strReceived;
+              strReceived = (String) obj;
+              System.out.println(strReceived);
+              Server.checkCommand(strReceived, s, oos);
+            } else if (obj instanceof SerializableImage){
+              Server.transportMsg(s, obj);
+            }
+          }
         }
 
       } catch (EOFException | NullPointerException e) {
@@ -48,7 +57,22 @@ public class ClientHandler implements Runnable {
 //        }
       }
     });
+//
+//    Thread thImageReceiver;
+//    thImageReceiver = new Thread(() -> {
+//      try {
+//        while (true) {
+//          BufferedImage image = ImageIO.read(ois);
+//          if(image != null){
+//            System.out.println(image);
+//          }
+//        }
+//      } catch(IOException e){
+//        e.printStackTrace();
+//      }
+//    });
 
     thReceiver.start();
+//    thImageReceiver.start();
   }
 }

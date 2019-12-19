@@ -15,8 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RoomListController {
-  @FXML
-  private Pagination pagination;
+  @FXML private Pagination pagination;
   private static int dataSize;
   private TableView<ChRoom> table;
   private List<ChRoom> chatRoom;

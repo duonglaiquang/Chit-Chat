@@ -7,24 +7,41 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 
 public class RootController {
 
+  @FXML private ImageView nyan;
   @FXML private ComboBox<String> tagbox;
   @FXML private Label connection;
 
   public void init(){
-    String[] tags = {"", "game", "book", "music", "boy", "girl"};
+    String[] tags = {"", "game", "movie", "book", "music", "boy", "girl"};
     tagbox.getItems().addAll(tags);
   }
 
-  public void match() throws IOException, NullPointerException {
+  public void nyan(){
+    nyan.setImage(new Image(new File("src/Client/Assets/images/nyan-hd.gif").toURI().toString()));
+  }
+
+  public void match() throws IOException {
+    callMatch(null);
+  }
+
+  public void callMatch(String oldTag) throws IOException, NullPointerException {
     if(Main.connected){
-      String tag = tagbox.getValue();
+      String tag;
+      if(tagbox != null){
+        tag = tagbox.getValue();
+      } else {
+        tag = oldTag;
+      }
       changeScene("searching");
       Main.client.request("match#"+tag);
     }
@@ -59,6 +76,10 @@ public class RootController {
       Main.cc = fXMLLoader.getController();
     }
     Platform.runLater(() -> stage.setScene(scene));
+    if(name.equals("searching")){
+      RootController rc = fXMLLoader.getController();
+      Platform.runLater(rc::nyan);
+    }
   }
 
   public void newStage(String name, String title, String message) throws IOException {

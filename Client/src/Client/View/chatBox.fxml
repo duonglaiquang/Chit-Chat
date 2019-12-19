@@ -5,14 +5,15 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Client.Controller.ChatController">
-    <ScrollPane fx:id="chatscroll" layoutY="36.0" prefHeight="330.0" prefWidth="600.0">
-        <VBox fx:id="chatbox" prefHeight="328.0" prefWidth="598.0">
+    <ScrollPane fx:id="chatscroll" layoutY="36.0" prefHeight="329.0" prefWidth="600.0">
+        <VBox fx:id="chatbox" prefHeight="327.0" prefWidth="598.0" style="-fx-padding: 10;">
             <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="28.0" prefWidth="598.0" text="Welcome to the chat room. Be polite to each other." textAlignment="CENTER" textFill="#000000b1">
                 <font>
                     <Font name="Arial Italic" size="13.0" />
@@ -20,18 +21,20 @@
             </Label>
         </VBox>
     </ScrollPane>
-    <TextField fx:id="message" layoutY="364.0" onAction="#submit" prefHeight="36.0" prefWidth="600.0" />
+    <TextField fx:id="message" layoutY="364.0" onAction="#submit" prefHeight="36.0" prefWidth="565.0" />
     <HBox alignment="CENTER_LEFT" prefHeight="36.0" prefWidth="600.0">
-        <Button onMouseClicked="#leave" mnemonicParsing="false" text="Back">
+        <Button mnemonicParsing="false" onMouseClicked="#leave" text="Back">
            <HBox.margin>
-               <Insets left="10.0"/>
+               <Insets left="10.0" />
            </HBox.margin>
         </Button>
-        <Label fx:id="title" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="472.0" text="Label"
-               textAlignment="CENTER">
+        <Label fx:id="title" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="472.0" text="Label" textAlignment="CENTER">
            <font>
-               <Font name="Arial Bold" size="18.0"/>
+               <Font name="Arial Bold" size="18.0" />
            </font>
         </Label>
+      <Label fx:id="tagLb" style="visibility: false;" text="null" />
     </HBox>
+    <ImageView fx:id="attach" fitHeight="36.0" fitWidth="35.0" layoutX="565.0" layoutY="364.0" onMouseClicked="#attachFile" pickOnBounds="true" preserveRatio="true">
+    </ImageView>
 </AnchorPane>
