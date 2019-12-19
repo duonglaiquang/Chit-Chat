@@ -1,6 +1,7 @@
 package Server;
 
 import ChatRoom.SerializableImage;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -16,7 +17,7 @@ public class ClientHandler implements Runnable {
     this.ois = new ObjectInputStream(s.getInputStream());
     this.oos = new ObjectOutputStream(s.getOutputStream());
     Server.oosOf.put(s, oos);
-    oos.writeObject("server#Connected#"+Server.userCount);
+    oos.writeObject("server#Connected#" + Server.userCount);
   }
 
   @Override
@@ -26,18 +27,22 @@ public class ClientHandler implements Runnable {
       try {
         while (true) {
           Object obj = ois.readObject();
-          if(obj != null) {
+          if (obj != null) {
             if (obj instanceof String) {
               String strReceived;
               strReceived = (String) obj;
               System.out.println(strReceived);
               Server.checkCommand(strReceived, s, oos);
-            } else if (obj instanceof SerializableImage){
+            } else if (obj instanceof SerializableImage) {
               Server.transportMsg(s, obj);
             }
           }
         }
-      } catch (NullPointerException | IOException | ClassNotFoundException ignored) {
+      } catch (NullPointerException | IOException | ClassNotFoundException e) {
+        try {
+          Server.quit(s, oos);
+        } catch (IOException ignored) {
+        }
       }
     });
 
