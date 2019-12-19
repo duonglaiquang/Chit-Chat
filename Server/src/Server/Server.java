@@ -176,9 +176,12 @@ public class Server {
   }
 
   public static void quit(Socket s, ObjectOutputStream oos) throws IOException {
-    leaveChat(s, oos);
-    userCount--;
-    System.out.println("User disconnected, Count updated: " + userCount);
+    if (oosOf.get(s) != null) {
+      leaveChat(s, oos);
+      oosOf.remove(s);
+      userCount--;
+      System.out.println("User disconnected, Count updated: " + userCount);
+    }
   }
 
   public static void getStatus(ObjectOutputStream oos) throws IOException {
