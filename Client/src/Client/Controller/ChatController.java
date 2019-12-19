@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ChatController {
+  @FXML private Button leaveBtn;
   @FXML private Label tagLb;
   @FXML private ImageView attach;
   @FXML private Label title;
@@ -35,6 +36,25 @@ public class ChatController {
     Platform.runLater(()->{
       title.setText(roomName);
       attach.setImage(new Image(new File("src/Client/Assets/images/attach.png").toURI().toString()));
+      leaveBtn.setOnAction(event -> {
+        try {
+          leave();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      });
+    });
+  }
+
+  public void overrideBtn() {
+    leaveBtn.setOnAction(null);
+    leaveBtn.setOnAction(event -> {
+      RootController rc = new RootController();
+      try {
+        rc.changeScene("root");
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     });
   }
 
@@ -43,13 +63,18 @@ public class ChatController {
   }
 
   public void submit() throws FileNotFoundException {
-    String str = message.getText();
+    String str;
+    try {
+      str = message.getText();
+      message.clear();
+    } catch (StringIndexOutOfBoundsException e) {
+      return;
+    }
     try {
       Main.client.oos.writeObject(str);
     } catch (IOException e) {
       e.printStackTrace();
     }
-    message.clear();
     addMessage(str, false, null);
   }
 

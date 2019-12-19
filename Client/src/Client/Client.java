@@ -71,6 +71,7 @@ public class Client {
 
                 case "Stranger_Disconnected":
                   Main.cc.showSystemMessage("Stranger Has Left The Chat!", true);
+                  Main.cc.overrideBtn();
                   break;
 
                 case "Chat_Left":
