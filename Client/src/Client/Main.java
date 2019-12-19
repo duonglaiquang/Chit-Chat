@@ -43,6 +43,7 @@ public class Main extends Application {
     rc = fXMLLoader.getController();
     primaryStage.setTitle("Chit Chat");
     primaryStage.setScene(new Scene(root, 600, 400));
+    primaryStage.setResizable(false);
     primaryStage.show();
     Platform.runLater(()-> rc.init());
     Thread thread = new Thread(() -> {

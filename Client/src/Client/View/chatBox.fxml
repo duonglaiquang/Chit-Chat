@@ -23,7 +23,7 @@
     </ScrollPane>
     <TextField fx:id="message" layoutY="364.0" onAction="#submit" prefHeight="36.0" prefWidth="565.0" />
     <HBox alignment="CENTER_LEFT" prefHeight="36.0" prefWidth="600.0">
-        <Button mnemonicParsing="false" onMouseClicked="#leave" text="Back">
+        <Button fx:id="leaveBtn" mnemonicParsing="false" text="Back">
            <HBox.margin>
                <Insets left="10.0" />
            </HBox.margin>
