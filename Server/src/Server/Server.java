@@ -44,10 +44,10 @@ public class Server {
       isSearching.remove(socket);
       searching.put(tag, soc);
       System.out.println("2 Clients has been matched with each other!");
-      oos.writeObject("server#Matched#"+tag);
+      oos.writeObject("server#Matched#" + tag);
       oos.flush();
       ObjectOutputStream os = oosOf.get(socket);
-      os.writeObject("server#Matched#"+tag);
+      os.writeObject("server#Matched#" + tag);
       os.flush();
     }
   }
@@ -140,7 +140,6 @@ public class Server {
       ObjectOutputStream os = oosOf.get(socket);
       pair.remove(s);
       pair.remove(socket);
-      //TODO remove tag garbage
       os.writeObject("server#Stranger_Disconnected");
       oos.writeObject("server#Chat_Left");
       os.flush();
@@ -182,8 +181,8 @@ public class Server {
     System.out.println("User disconnected, Count updated: " + userCount);
   }
 
-  public static void getStatus() {
-    //TODO
+  public static void getStatus(ObjectOutputStream oos) throws IOException {
+    oos.writeObject("server#Client_Count#" + userCount);
   }
 
   public static void checkCommand(String str, Socket s, ObjectOutputStream oos) throws IOException {
@@ -235,6 +234,10 @@ public class Server {
         case "disconnect":
           quit(s, oos);
           break;
+
+        case "getStatus":
+          getStatus(oos);
+          break;
         default:
           oos.writeObject("server#Wrong Request Command!");
       }
@@ -252,7 +255,7 @@ public class Server {
       for (Socket socket : room.sockets) {
         if (!socket.equals(s)) {
           ObjectOutputStream os = oosOf.get(socket);
-          if(obj instanceof String){
+          if (obj instanceof String) {
             os.writeObject(obj + "#" + room.colorOf.get(s));
           } else {
             os.writeObject(obj);
@@ -271,7 +274,7 @@ public class Server {
         s = ss.accept();
         userCount++;
         System.out.println("New Client Connected At " + s);
-        System.out.println("Client count: "+userCount);
+        System.out.println("Client count: " + userCount);
         ClientHandler handler = new ClientHandler(s);
         Thread t = new Thread(handler);
         t.start();

@@ -17,6 +17,7 @@ import java.io.IOException;
 
 public class RootController {
 
+  @FXML private Label onlineCount;
   @FXML private ImageView nyan;
   @FXML private ComboBox<String> tagbox;
   @FXML private Label connection;
@@ -24,6 +25,11 @@ public class RootController {
   public void init(){
     String[] tags = {"", "game", "movie", "book", "music", "boy", "girl"};
     tagbox.getItems().addAll(tags);
+  }
+
+  public void updateUserCount(String count){
+    if(onlineCount != null)
+      Platform.runLater(()->onlineCount.setText(count + " Client Online"));
   }
 
   public void nyan(){
@@ -70,16 +76,19 @@ public class RootController {
     if(name.equals("root")){
       RootController rc = fXMLLoader.getController();
       rc.updateConnectionStatus();
+      Main.rc = rc;
+      Main.client.updateCount();
       Platform.runLater(rc::init);
     }
     if(name.equals("chatBox")){
       Main.cc = fXMLLoader.getController();
     }
-    Platform.runLater(() -> stage.setScene(scene));
     if(name.equals("searching")){
       RootController rc = fXMLLoader.getController();
       Platform.runLater(rc::nyan);
     }
+    Main.currentScene = name;
+    Platform.runLater(() -> stage.setScene(scene));
   }
 
   public void newStage(String name, String title, String message) throws IOException {
@@ -102,8 +111,13 @@ public class RootController {
 
   public void updateConnectionStatus() {
     Platform.runLater(()->{
-      connection.setText("Connected to Server");
-      connection.setStyle("-fx-text-fill: green;");
+      if(Main.connected){
+        connection.setText("Connected to Server");
+        connection.setStyle("-fx-text-fill: green;");
+      } else {
+        connection.setText("Unable to connect to Server");
+        connection.setStyle("-fx-text-fill: red;");
+      }
     });
   }
 }

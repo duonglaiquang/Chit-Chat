@@ -12,7 +12,7 @@
             <Font name="Arial Bold" size="36.0" />
         </font>
     </Label>
-    <Label alignment="CENTER" contentDisplay="CENTER" layoutX="260.0" layoutY="90.0" text="0 Client Online" textAlignment="CENTER">
+    <Label fx:id="onlineCount" alignment="CENTER" contentDisplay="CENTER" layoutX="260.0" layoutY="90.0" text="0 Client Online" textAlignment="CENTER">
         <font>
             <Font name="Arial" size="14.0" />
         </font>

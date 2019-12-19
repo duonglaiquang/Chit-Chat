@@ -9,9 +9,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -21,7 +21,7 @@ public class Client {
   public ObjectInputStream ois;
   public String color = null;
 
-  public void request(String action) throws IOException {
+  public void request(String action) throws IOException, NullPointerException {
     oos.writeObject("request#" + action);
     oos.flush();
   }
@@ -33,10 +33,35 @@ public class Client {
     oos.flush();
   }
 
+  public void updateCount() {
+    Thread thUpdater = new Thread(() -> {
+      while (Main.currentScene.equals("root")) {
+        try {
+          System.out.println("Getting info from server...");
+          request("getStatus");
+        } catch (IOException | NullPointerException e) {
+          break;
+        }
+        try {
+          Thread.sleep(3000);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
+    });
+
+    thUpdater.start();
+  }
+
   public void start() throws IOException {
-    s = new Socket("192.168.110.122", 1234);
-    oos = new ObjectOutputStream(s.getOutputStream());
-    ois = new ObjectInputStream(s.getInputStream());
+    while (s == null) {
+      try {
+        s = new Socket("192.168.110.122", 1234);
+        oos = new ObjectOutputStream(s.getOutputStream());
+        ois = new ObjectInputStream(s.getInputStream());
+      } catch (Exception ignored) {
+      }
+    }
 
     Thread thReceiver = new Thread(() -> {
       try {
@@ -53,10 +78,9 @@ public class Client {
               switch (response) {
                 case "Matched":
                   System.out.println("Client Matched!");
-                  String tag = st.nextToken();
                   rc = new RootController();
                   rc.changeScene("chatBox");
-                  Main.cc.setTag(tag);
+                  Main.cc.setTag(st.nextToken());
                   Main.cc.init("Stranger");
                   break;
 
@@ -81,6 +105,7 @@ public class Client {
                 case "Connected":
                   Main.connected = true;
                   Main.rc.updateConnectionStatus();
+                  Main.rc.updateUserCount(st.nextToken());
                   break;
 
                 case "Stranger_Joined":
@@ -126,6 +151,10 @@ public class Client {
                   rc.newStage("warning", "Warning", "Room Full!");
                   break;
 
+                case "Client_Count":
+                  Main.rc.updateUserCount(st.nextToken());
+                  break;
+
                 default:
                   System.out.println("Unknown Response: " + strReceived);
                   break;
@@ -146,25 +175,45 @@ public class Client {
             Stage stage = Main.homeStage;
             RoomListController rc = fXMLLoader.getController();
             rc.init(objReceived);
+            Main.currentScene = "roomList";
             Platform.runLater(() -> stage.setScene(scene));
           } else {
             SerializableImage image = (SerializableImage) objReceived;
             Image img;
             try {
               img = image.getImage();
-            } catch (IllegalArgumentException e){
+            } catch (IllegalArgumentException e) {
               img = new Image(new FileInputStream("src/Client/Assets/images/file-not-found.png"));
             }
             Main.cc.addImage(img, true);
           }
         }
-      } catch (EOFException e) {
-        System.out.println("Disconnected!");
+      } catch (EOFException | SocketException e) {
+        // Lost connection
+        RootController rc = new RootController();
+        try {
+          rc.changeScene("root");
+        } catch (IOException ignored) {
+        }
+        Main.connected = false;
+        try {
+          rc.newStage("warning", "Warning", "Disconnected from server!");
+        } catch (IOException ignored) {
+        }
+        Main.rc.updateConnectionStatus();
+        s = null;
+        oos = null;
+        ois = null;
+        try {
+          start();
+        } catch (IOException ignored) {
+        }
       } catch (IOException | ClassNotFoundException e) {
         e.printStackTrace();
       }
     });
 
     thReceiver.start();
+    updateCount();
   }
 }

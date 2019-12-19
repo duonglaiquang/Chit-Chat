@@ -15,6 +15,7 @@ public class Main extends Application {
   public static Client client = new Client();
   public static Stage homeStage;
   public static Stage currentStage;
+  public static String currentScene = "root";
   public static Parent root;
   public static ChatController cc;
   public static RootController rc;
@@ -45,12 +46,15 @@ public class Main extends Application {
     primaryStage.setScene(new Scene(root, 600, 400));
     primaryStage.setResizable(false);
     primaryStage.show();
-    Platform.runLater(()-> rc.init());
+    Platform.runLater(() -> rc.init());
     Thread thread = new Thread(() -> {
       try {
         client.start();
       } catch (IOException e) {
-        e.printStackTrace();
+        try {
+          rc.newStage("warning", "Warning", "Something gone wrong. Cant start application!");
+        } catch (IOException ignored) {
+        }
       }
     });
     thread.start();
