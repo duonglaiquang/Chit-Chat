@@ -1,10 +1,6 @@
 package Server;
 
 import ChatRoom.SerializableImage;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -20,7 +16,7 @@ public class ClientHandler implements Runnable {
     this.ois = new ObjectInputStream(s.getInputStream());
     this.oos = new ObjectOutputStream(s.getOutputStream());
     Server.oosOf.put(s, oos);
-    oos.writeObject("server#Connected#");
+    oos.writeObject("server#Connected#"+Server.userCount);
   }
 
   @Override
@@ -41,38 +37,10 @@ public class ClientHandler implements Runnable {
             }
           }
         }
-
-      } catch (EOFException | NullPointerException e) {
-        System.out.println("Client disconnected!");
-//        try {
-//          Server.leaveChat(s, oos);
-//        } catch (IOException ex) {
-//          System.out.println("Exception in correction method!");
-//        }
-      } catch (IOException | ClassNotFoundException e) {
-//        try {
-//          Server.leaveChat(s, oos);
-//        } catch (IOException ex) {
-//          System.out.println("Exception in correction method!");
-//        }
+      } catch (NullPointerException | IOException | ClassNotFoundException ignored) {
       }
     });
-//
-//    Thread thImageReceiver;
-//    thImageReceiver = new Thread(() -> {
-//      try {
-//        while (true) {
-//          BufferedImage image = ImageIO.read(ois);
-//          if(image != null){
-//            System.out.println(image);
-//          }
-//        }
-//      } catch(IOException e){
-//        e.printStackTrace();
-//      }
-//    });
 
     thReceiver.start();
-//    thImageReceiver.start();
   }
 }
