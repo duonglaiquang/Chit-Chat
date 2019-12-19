@@ -18,15 +18,13 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ChatController {
+  @FXML private Label tagLb;
   @FXML private ImageView attach;
   @FXML private Label title;
   @FXML private ScrollPane chatscroll;
@@ -38,6 +36,10 @@ public class ChatController {
       title.setText(roomName);
       attach.setImage(new Image(new File("src/Client/Assets/images/attach.png").toURI().toString()));
     });
+  }
+
+  public void setTag(String tag) {
+    Platform.runLater(()-> tagLb.setText(tag));
   }
 
   public void submit() throws FileNotFoundException {
@@ -60,8 +62,9 @@ public class ChatController {
       Button rematchBtn = new Button("Rematch");
       rematchBtn.setOnAction(event -> {
         RootController rc = new RootController();
+        String tag = Main.cc.tagLb.getText();
         try {
-          rc.match();
+          rc.callMatch(tag);
         } catch (IOException e) {
           e.printStackTrace();
         }
@@ -134,7 +137,6 @@ public class ChatController {
   public void attachFile() throws IOException {
     FileChooser fileChooser = new FileChooser();
     File selectedFile = fileChooser.showOpenDialog(Main.homeStage);
-    BufferedImage image = ImageIO.read(selectedFile);
     Image img = new Image(new FileInputStream(selectedFile.getPath()));
     Main.client.sendImage(img);
     Platform.runLater(()-> {

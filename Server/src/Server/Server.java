@@ -44,10 +44,10 @@ public class Server {
       isSearching.remove(socket);
       searching.put(tag, soc);
       System.out.println("2 Clients has been matched with each other!");
-      oos.writeObject("server#Matched");
+      oos.writeObject("server#Matched#"+tag);
       oos.flush();
       ObjectOutputStream os = oosOf.get(socket);
-      os.writeObject("server#Matched");
+      os.writeObject("server#Matched#"+tag);
       os.flush();
     }
   }

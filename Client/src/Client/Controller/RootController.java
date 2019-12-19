@@ -30,9 +30,18 @@ public class RootController {
     nyan.setImage(new Image(new File("src/Client/Assets/images/nyan-hd.gif").toURI().toString()));
   }
 
-  public void match() throws IOException, NullPointerException {
+  public void match() throws IOException {
+    callMatch(null);
+  }
+
+  public void callMatch(String oldTag) throws IOException, NullPointerException {
     if(Main.connected){
-      String tag = tagbox.getValue();
+      String tag;
+      if(tagbox != null){
+        tag = tagbox.getValue();
+      } else {
+        tag = oldTag;
+      }
       changeScene("searching");
       Main.client.request("match#"+tag);
     }

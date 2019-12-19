@@ -10,10 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
@@ -56,8 +53,10 @@ public class Client {
               switch (response) {
                 case "Matched":
                   System.out.println("Client Matched!");
+                  String tag = st.nextToken();
                   rc = new RootController();
                   rc.changeScene("chatBox");
+                  Main.cc.setTag(tag);
                   Main.cc.init("Stranger");
                   break;
 
@@ -149,7 +148,12 @@ public class Client {
             Platform.runLater(() -> stage.setScene(scene));
           } else {
             SerializableImage image = (SerializableImage) objReceived;
-            Image img = image.getImage();
+            Image img;
+            try {
+              img = image.getImage();
+            } catch (IllegalArgumentException e){
+              img = new Image(new FileInputStream("src/Client/Assets/images/file-not-found.png"));
+            }
             Main.cc.addImage(img, true);
           }
         }
