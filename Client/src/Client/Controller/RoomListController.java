@@ -3,18 +3,23 @@ package Client.Controller;
 import ChatRoom.ChatRoom;
 import Client.Main;
 import Client.Model.ChRoom;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.util.Callback;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RoomListController {
+  @FXML private ImageView refresh;
   @FXML private Pagination pagination;
   private static int dataSize;
   private TableView<ChRoom> table;
@@ -29,6 +34,7 @@ public class RoomListController {
     pagination.setPageCount(dataSize / rowsPerPage + 1);
     pagination.setMaxPageIndicatorCount(10);
     addButtonToTable();
+    Platform.runLater(()-> refresh.setImage(new Image(new File("src/Client/Assets/images/refresh.png").toURI().toString())));
   }
 
   //this method used to fill ChatRoom in tableview
@@ -119,5 +125,9 @@ public class RoomListController {
   public void back() throws IOException {
     RootController rc = new RootController();
     rc.changeScene("root");
+  }
+
+  public void refreshTable() throws IOException {
+    Main.client.request("roomls");
   }
 }
