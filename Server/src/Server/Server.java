@@ -1,7 +1,7 @@
 package Server;
 
-import ChatRoom.ChatRoom;
-import ChatRoom.Color;
+import CustomClass.ChatRoom;
+import CustomClass.Color;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;

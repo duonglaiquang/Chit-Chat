@@ -1,8 +1,8 @@
 package Client.Controller;
 
-import ChatRoom.ChatRoom;
 import Client.Main;
 import Client.Model.ChRoom;
+import CustomClass.ChatRoom;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;

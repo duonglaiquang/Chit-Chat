@@ -1,9 +1,9 @@
 package Client;
 
-import ChatRoom.SerializableImage;
 import Client.Controller.ModalController;
 import Client.Controller.RoomListController;
 import Client.Controller.RootController;
+import CustomClass.SerializableImage;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

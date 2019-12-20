@@ -1,6 +1,6 @@
 package Server;
 
-import ChatRoom.SerializableImage;
+import CustomClass.SerializableImage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
