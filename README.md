@@ -2,4 +2,4 @@
 
 # WIP
 
-Client Jar File: https://drive.google.com/open?id=1IO2Bqy2DlpBSqOhPmYH5V9BhzK9mDrMH
+Client dmg: https://drive.google.com/open?id=1r5vJ6E9qvGV4XKoqSWh7OycAWsMi80i_
