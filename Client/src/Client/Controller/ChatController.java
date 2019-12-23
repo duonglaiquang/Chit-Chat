@@ -13,6 +13,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -33,7 +34,17 @@ public class ChatController {
   @FXML private TextField message;
 
   public void init(String roomName) {
-    Platform.runLater(()->{
+    message.setOnKeyPressed(event -> {
+      if(event.getCode() == KeyCode.ENTER){
+        try {
+          submit();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    });
+
+    Platform.runLater(() -> {
       title.setText(roomName);
       attach.setImage(new Image(new File("src/Client/Assets/images/attach.png").toURI().toString()));
       leaveBtn.setOnAction(event -> {
@@ -59,31 +70,23 @@ public class ChatController {
   }
 
   public void setTag(String tag) {
-    Platform.runLater(()-> tagLb.setText(tag));
+    Platform.runLater(() -> tagLb.setText(tag));
   }
 
-  public void submit() throws FileNotFoundException {
+  public void submit() throws IOException {
     String str;
-    try {
-      str = message.getText();
-      message.clear();
-    } catch (StringIndexOutOfBoundsException e) {
-      return;
-    }
-    try {
-      Main.client.oos.writeObject(str);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    str = message.getText();
+    message.clear();
+    Main.client.oos.writeObject(str);
     addMessage(str, false, null);
   }
 
-  public void showSystemMessage(String msg, Boolean button){
+  public void showSystemMessage(String msg, Boolean button) {
     Label label = new Label(msg);
     label.getStyleClass().add("system-grey");
     label.getStylesheets().add(getClass().getResource("../Assets/css/chatBox.css").toExternalForm());
     HBox hBox = null;
-    if(button) {
+    if (button) {
       Button rematchBtn = new Button("Rematch");
       rematchBtn.setOnAction(event -> {
         RootController rc = new RootController();
@@ -109,9 +112,9 @@ public class ChatController {
       hBox.setAlignment(Pos.TOP_CENTER);
     }
     HBox finalHBox = hBox;
-    Platform.runLater(()->{
+    Platform.runLater(() -> {
       chatbox.getChildren().add(label);
-      if(button) {
+      if (button) {
         chatbox.getChildren().add(finalHBox);
       }
       chatbox.setSpacing(10);
@@ -131,9 +134,9 @@ public class ChatController {
     avatar.setFitHeight(25);
     avatar.setFitWidth(25);
     HBox hBox;
-    if(left){
-      hBox=new HBox(avatar, label);
-      if(color != null){
+    if (left) {
+      hBox = new HBox(avatar, label);
+      if (color != null) {
         label.setStyle("-fx-background-color: " + color);
       } else {
         label.getStyleClass().add("receive");
@@ -141,12 +144,12 @@ public class ChatController {
       hBox.setAlignment(Pos.CENTER_LEFT);
       HBox.setMargin(avatar, new Insets(0, 0, 0, 10));
     } else {
-      hBox=new HBox(label);
+      hBox = new HBox(label);
       label.getStyleClass().add("send");
       hBox.setAlignment(Pos.CENTER_RIGHT);
       HBox.setMargin(label, new Insets(0, 10, 0, 0));
     }
-    Platform.runLater(()->{
+    Platform.runLater(() -> {
       chatbox.getChildren().add(hBox);
       chatbox.setSpacing(10);
       chatscroll.vvalueProperty().bind(chatbox.heightProperty());
@@ -164,7 +167,7 @@ public class ChatController {
     File selectedFile = fileChooser.showOpenDialog(Main.homeStage);
     Image img = new Image(new FileInputStream(selectedFile.getPath()));
     Main.client.sendImage(img);
-    Platform.runLater(()-> {
+    Platform.runLater(() -> {
       try {
         Main.cc.addImage(img, false);
       } catch (FileNotFoundException e) {
@@ -206,16 +209,16 @@ public class ChatController {
     avatar.setFitWidth(25);
 
     HBox hBox;
-    if(left){
-      hBox=new HBox(avatar, imageView);
+    if (left) {
+      hBox = new HBox(avatar, imageView);
       hBox.setAlignment(Pos.CENTER_LEFT);
       HBox.setMargin(avatar, new Insets(0, 0, 0, 10));
     } else {
-      hBox=new HBox(imageView);
+      hBox = new HBox(imageView);
       hBox.setAlignment(Pos.CENTER_RIGHT);
       HBox.setMargin(imageView, new Insets(0, 10, 0, 0));
     }
-    Platform.runLater(()->{
+    Platform.runLater(() -> {
       chatbox.getChildren().add(hBox);
       chatbox.setSpacing(10);
       chatscroll.vvalueProperty().bind(chatbox.heightProperty());

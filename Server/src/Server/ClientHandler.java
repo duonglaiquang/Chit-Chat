@@ -1,6 +1,6 @@
 package Server;
 
-import ChatRoom.SerializableImage;
+import CustomClass.SerializableImage;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -31,7 +31,6 @@ public class ClientHandler implements Runnable {
             if (obj instanceof String) {
               String strReceived;
               strReceived = (String) obj;
-              System.out.println(strReceived);
               Server.checkCommand(strReceived, s, oos);
             } else if (obj instanceof SerializableImage) {
               Server.transportMsg(s, obj);

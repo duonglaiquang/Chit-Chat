@@ -1,4 +1,4 @@
-package ChatRoom;
+package CustomClass;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.PixelReader;

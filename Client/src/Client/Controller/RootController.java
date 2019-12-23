@@ -25,6 +25,8 @@ public class RootController {
   public void init(){
     String[] tags = {"", "game", "movie", "book", "music", "boy", "girl"};
     tagbox.getItems().addAll(tags);
+    updateConnectionStatus();
+    Main.client.updateCount();
   }
 
   public void updateUserCount(String count){
@@ -75,9 +77,7 @@ public class RootController {
     Stage stage = Main.homeStage;
     if(name.equals("root")){
       RootController rc = fXMLLoader.getController();
-      rc.updateConnectionStatus();
       Main.rc = rc;
-      Main.client.updateCount();
       Platform.runLater(rc::init);
     }
     if(name.equals("chatBox")){

@@ -1,4 +1,4 @@
-package ChatRoom;
+package CustomClass;
 
 import java.io.Serializable;
 

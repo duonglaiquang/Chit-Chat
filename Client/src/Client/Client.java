@@ -1,9 +1,9 @@
 package Client;
 
-import ChatRoom.SerializableImage;
 import Client.Controller.ModalController;
 import Client.Controller.RoomListController;
 import Client.Controller.RootController;
+import CustomClass.SerializableImage;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -12,7 +12,7 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 public class Client {
@@ -37,7 +37,6 @@ public class Client {
     Thread thUpdater = new Thread(() -> {
       while (Main.currentScene.equals("root")) {
         try {
-          System.out.println("Getting info from server...");
           request("getStatus");
         } catch (IOException | NullPointerException e) {
           break;
@@ -77,7 +76,6 @@ public class Client {
               ModalController mc = new ModalController();
               switch (response) {
                 case "Matched":
-                  System.out.println("Client Matched!");
                   rc = new RootController();
                   rc.changeScene("chatBox");
                   Main.cc.setTag(st.nextToken());
@@ -85,21 +83,17 @@ public class Client {
                   break;
 
                 case "Searching":
-                  System.out.println("Searching...");
                   break;
 
                 case "Search_Canceled":
-                  System.out.println("Search Canceled!");
+
+                case "Chat_Left":
                   rc.changeScene("root");
                   break;
 
                 case "Stranger_Disconnected":
                   Main.cc.showSystemMessage("Stranger Has Left The Chat!", true);
                   Main.cc.overrideBtn();
-                  break;
-
-                case "Chat_Left":
-                  rc.changeScene("root");
                   break;
 
                 case "Connected":
@@ -109,7 +103,6 @@ public class Client {
                   break;
 
                 case "Stranger_Joined":
-                  System.out.println("Stranger Joined!");
                   Main.cc.showSystemMessage("Stranger has joined the chat!", false);
                   break;
 
@@ -118,7 +111,6 @@ public class Client {
                   break;
 
                 case "Room_Created":
-                  System.out.println("Room Created!");
                   color = st.nextToken();
                   String roomName = st.nextToken();
                   mc.roomCreated();
@@ -127,13 +119,11 @@ public class Client {
                   break;
 
                 case "No_Room_Available":
-                  System.out.println("No Room Available!");
                   rc.changeScene("root");
                   rc.newStage("warning", "Warning", "Room List Empty!");
                   break;
 
                 case "Room_Joined":
-                  System.out.println("Room Joined!");
                   color = st.nextToken();
                   String room = st.nextToken();
                   rc = new RootController();
@@ -143,7 +133,6 @@ public class Client {
                   break;
 
                 case "Room_Left":
-                  System.out.println("Room Left");
                   request("roomls");
                   break;
 
@@ -160,7 +149,6 @@ public class Client {
                   break;
               }
             } else {
-              System.out.println(strReceived);
               if (st.hasMoreTokens()) {
                 String strangerColor = st.nextToken();
                 Main.cc.addMessage(from, true, strangerColor);
@@ -168,7 +156,9 @@ public class Client {
                 Main.cc.addMessage(from, true, null);
               }
             }
-          } else if (objReceived instanceof ArrayList) {
+          } else if (objReceived instanceof List) {
+            System.out.println(objReceived);
+            System.out.println(((List) objReceived).size());
             FXMLLoader fXMLLoader = new FXMLLoader();
             fXMLLoader.setLocation(getClass().getResource("View/roomList.fxml"));
             Scene scene = new Scene(fXMLLoader.load(), 600, 400);
