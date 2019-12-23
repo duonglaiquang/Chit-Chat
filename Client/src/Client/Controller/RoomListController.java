@@ -27,7 +27,7 @@ public class RoomListController {
   private static int rowsPerPage = 5;
 
   public void init(Object obj) {
-    dataSize = ((ArrayList) obj).size();
+    dataSize = ((List) obj).size();
     chatRoom = createData(obj);
     table = createTable();
     pagination.setPageFactory(this::createPage);
@@ -41,8 +41,8 @@ public class RoomListController {
   private List<ChRoom> createData(Object obj) {
     List<ChRoom> chatRoom = new ArrayList<>(dataSize);
     for (int i = 0; i < dataSize; i++) {
-      ChatRoom object = (ChatRoom) ((ArrayList) obj).get(i);
-      chatRoom.add(new ChRoom(i + 1, object.clientCount, object.name, object.description));
+      ChatRoom object = (ChatRoom) ((List) obj).get(i);
+      chatRoom.add(new ChRoom(i + 1, object.clientCount.get(), object.name, object.description));
     }
     return chatRoom;
   }

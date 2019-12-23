@@ -2,19 +2,19 @@ package CustomClass;
 
 import java.io.Serializable;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChatRoom implements Serializable {
   public final static int MAX_CLIENT = 10;
   public Integer id;
   public String name;
   public String description;
-  public Integer clientCount = 0;
+  public AtomicInteger clientCount = new AtomicInteger(0);
   public Color[] color = new Color[MAX_CLIENT];
-  public transient LinkedList<Socket> sockets = new LinkedList<>();
+  public transient List<Socket> sockets = Collections.synchronizedList(new ArrayList<>());
   public transient String[] colorName = {"white", "beige", "orange", "lightblue", "yellow", "lightgreen", "pink", "green", "lime", "cyan"};
-  public transient HashMap<Socket, String> colorOf = new HashMap<>();
+  public transient Map<Socket, String> colorOf = Collections.synchronizedMap(new HashMap<>());
 
   public ChatRoom(Integer id, String name, String description) {
     this.id = id;

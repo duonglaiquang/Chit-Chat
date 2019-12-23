@@ -31,8 +31,7 @@ public class Main extends Application {
     homeStage.setOnCloseRequest(e -> {
       try {
         client.request("disconnect");
-      } catch (IOException ex) {
-        ex.printStackTrace();
+      } catch (IOException | NullPointerException ignored) {
       }
       Platform.exit();
       System.exit(0);

@@ -7,23 +7,45 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.StringTokenizer;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
   final static String[] tags = {null, "game", "movie", "book", "music", "boy", "girl"};
+  //TODO : replace none syncronized collection
+  //TODO : recheck roomls function
+  //TODO : build with gradle ,package dmg
+  //TODO : revamp UI
 
-  static HashMap<Socket, ObjectOutputStream> oosOf = new HashMap<>();
-  static ArrayList<ChatRoom> rooms = new ArrayList<>();
-  static HashMap<Socket, ChatRoom> currentRoom = new HashMap<>();
-  static HashMap<String, LinkedList<Socket>> searching = new HashMap<>();
-  static LinkedList<Socket> isSearching = new LinkedList<>();
-  static HashMap<Socket, Socket> pair = new HashMap<>();
-  static HashMap<Socket, Boolean> cancel = new HashMap<>();
-  static int userCount = 0;
-  static int roomCount = 0;
+  static Map<Socket, ObjectOutputStream> oosOf = Collections.synchronizedMap(new HashMap<>());
+  static Map<Socket, ChatRoom> currentRoom = Collections.synchronizedMap(new HashMap<>());
+  static Map<String, LinkedList<Socket>> searching = Collections.synchronizedMap(new HashMap<>());
+  static Map<Socket, Socket> pair = Collections.synchronizedMap(new HashMap<>());
+  static Map<Socket, Boolean> cancel = Collections.synchronizedMap(new HashMap<>());
+  static List<Socket> isSearching = Collections.synchronizedList(new ArrayList<>());
+  static List<ChatRoom> rooms = Collections.synchronizedList(new ArrayList<>());
+  static AtomicInteger userCount = new AtomicInteger(0);
+  static AtomicInteger roomCount = new AtomicInteger(0);
+
+  static void increment(AtomicInteger i) {
+    while(true) {
+      int existingValue = i.get();
+      int newValue = existingValue + 1;
+      if(i.compareAndSet(existingValue, newValue)) {
+        return;
+      }
+    }
+  }
+
+  static void decrement(AtomicInteger i) {
+    while(true) {
+      int existingValue = i.get();
+      int newValue = existingValue - 1;
+      if(i.compareAndSet(existingValue, newValue)) {
+        return;
+      }
+    }
+  }
 
   static void searchTag(Socket s, String tag, ObjectOutputStream oos) throws IOException {
     LinkedList<Socket> soc;
@@ -43,7 +65,6 @@ public class Server {
       isSearching.remove(s);
       isSearching.remove(socket);
       searching.put(tag, soc);
-      System.out.println("2 Clients has been matched with each other!");
       oos.writeObject("server#Matched#" + tag);
       oos.flush();
       ObjectOutputStream os = oosOf.get(socket);
@@ -52,7 +73,7 @@ public class Server {
     }
   }
 
-  public static void cancelSearch(Socket s, ObjectOutputStream oos, String tag) throws IOException {
+  static void cancelSearch(Socket s, ObjectOutputStream oos, String tag) throws IOException {
     if (searching.get(tag).size() == 1) {
       searching.remove(tag);
     } else {
@@ -64,7 +85,7 @@ public class Server {
     oos.flush();
   }
 
-  public static void match(Socket s, String tag, ObjectOutputStream oos) throws IOException, InterruptedException, NullPointerException {
+  static void match(Socket s, String tag, ObjectOutputStream oos) throws IOException, InterruptedException, NullPointerException {
     isSearching.add(s);
     cancel.put(s, false);
     searchTag(s, tag, oos);
@@ -79,29 +100,30 @@ public class Server {
     }
   }
 
-  public static void loadRoomList(ObjectOutputStream oos) throws IOException {
-    if (roomCount == 0) {
+  static void loadRoomList(ObjectOutputStream oos) throws IOException {
+    if (roomCount.get() == 0) {
       oos.writeObject("server#No_Room_Available");
     } else {
+      System.out.println(rooms.size());
       oos.writeObject(rooms);
     }
     oos.flush();
   }
 
-  public static void createRoom(Socket s, ObjectOutputStream oos, String name, String description) throws IOException {
-    ChatRoom room = new ChatRoom(roomCount, name, description);
-    room.clientCount++;
+  static void createRoom(Socket s, ObjectOutputStream oos, String name, String description) throws IOException {
+    ChatRoom room = new ChatRoom(roomCount.get(), name, description);
+    increment(room.clientCount);
     room.sockets.add(s);
     rooms.add(room);
     currentRoom.put(s, room);
     String color = colorPicker(room);
     room.colorOf.put(s, color);
+    increment(roomCount);
     oos.writeObject("server#Room_Created#" + color + "#" + name);
     oos.flush();
-    roomCount++;
   }
 
-  public static String colorPicker(ChatRoom room) {
+  static String colorPicker(ChatRoom room) {
     Color color = null;
     for (int i = 0; i < ChatRoom.MAX_CLIENT; i++) {
       if (room.color[i].isAvailable()) {
@@ -113,11 +135,11 @@ public class Server {
     return color.getName();
   }
 
-  public static void joinRoom(Socket s, ObjectOutputStream oos, Integer id) throws IOException {
+  static void joinRoom(Socket s, ObjectOutputStream oos, Integer id) throws IOException {
     ChatRoom room = rooms.get(id);
-    if (room.clientCount < ChatRoom.MAX_CLIENT) {
+    if (room.clientCount.get() < ChatRoom.MAX_CLIENT) {
       room.sockets.add(s);
-      room.clientCount++;
+      increment(room.clientCount);
       currentRoom.put(s, room);
       String color = colorPicker(room);
       room.colorOf.put(s, color);
@@ -134,7 +156,7 @@ public class Server {
     }
   }
 
-  public static void leaveChat(Socket s, ObjectOutputStream oos) throws IOException {
+  static void leaveChat(Socket s, ObjectOutputStream oos) throws IOException {
     if (pair.get(s) != null) {
       Socket socket = pair.get(s);
       ObjectOutputStream os = oosOf.get(socket);
@@ -146,11 +168,11 @@ public class Server {
       oos.flush();
     } else if (currentRoom.get(s) != null) {
       ChatRoom room = currentRoom.get(s);
-      if (room.clientCount == 1) {
+      if (room.clientCount.get() == 1) {
         rooms.remove(room);
-        roomCount--;
+        decrement(roomCount);
       } else {
-        room.clientCount--;
+        decrement(room.clientCount);
         room.sockets.remove(s);
         String colorName = room.colorOf.get(s);
         for (int i = 0; i < ChatRoom.MAX_CLIENT; i++) {
@@ -175,20 +197,20 @@ public class Server {
     }
   }
 
-  public static void quit(Socket s, ObjectOutputStream oos) throws IOException {
+  static void quit(Socket s, ObjectOutputStream oos) throws IOException {
     if (oosOf.get(s) != null) {
       leaveChat(s, oos);
       oosOf.remove(s);
-      userCount--;
+      decrement(userCount);
       System.out.println("User disconnected, Count updated: " + userCount);
     }
   }
 
-  public static void getStatus(ObjectOutputStream oos) throws IOException {
+  static void getStatus(ObjectOutputStream oos) throws IOException {
     oos.writeObject("server#Client_Count#" + userCount);
   }
 
-  public static void checkCommand(String str, Socket s, ObjectOutputStream oos) throws IOException {
+  static void checkCommand(String str, Socket s, ObjectOutputStream oos) throws IOException {
     StringTokenizer st = new StringTokenizer(str, "#");
     String cmd = st.nextToken();
     if (cmd.equals("request")) {
@@ -208,7 +230,6 @@ public class Server {
 
         case "cancel":
           cancel.put(s, true);
-          System.out.println("Search Canceled!");
           break;
 
         case "createRoom":
@@ -249,7 +270,7 @@ public class Server {
     }
   }
 
-  public static void transportMsg(Socket s, Object obj) throws IOException, NullPointerException {
+  static void transportMsg(Socket s, Object obj) throws IOException, NullPointerException {
     if (pair.get(s) != null) {
       ObjectOutputStream os = oosOf.get(pair.get(s));
       os.writeObject(obj);
@@ -275,7 +296,7 @@ public class Server {
 
       while (true) {
         s = ss.accept();
-        userCount++;
+        increment(userCount);
         System.out.println("New Client Connected At " + s);
         System.out.println("Client count: " + userCount);
         ClientHandler handler = new ClientHandler(s);

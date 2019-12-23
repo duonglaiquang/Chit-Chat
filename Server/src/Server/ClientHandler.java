@@ -31,7 +31,6 @@ public class ClientHandler implements Runnable {
             if (obj instanceof String) {
               String strReceived;
               strReceived = (String) obj;
-              System.out.println(strReceived);
               Server.checkCommand(strReceived, s, oos);
             } else if (obj instanceof SerializableImage) {
               Server.transportMsg(s, obj);
