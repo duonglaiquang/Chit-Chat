@@ -116,14 +116,14 @@ public class Server {
     room.sockets.add(s);
     rooms.add(room);
     currentRoom.put(s, room);
-    String color = colorPicker(room);
+    Color color = colorPicker(room);
     room.colorOf.put(s, color);
     increment(roomCount);
-    oos.writeObject("server#Room_Created#" + color + "#" + name);
+    oos.writeObject("server#Room_Created#" + color.getName() + "#" + name);
     oos.flush();
   }
 
-  static String colorPicker(ChatRoom room) {
+  static Color colorPicker(ChatRoom room) {
     Color color = null;
     for (int i = 0; i < ChatRoom.MAX_CLIENT; i++) {
       if (room.color[i].isAvailable()) {
@@ -132,7 +132,7 @@ public class Server {
         break;
       }
     }
-    return color.getName();
+    return color;
   }
 
   static void joinRoom(Socket s, ObjectOutputStream oos, Integer id) throws IOException {
@@ -141,7 +141,7 @@ public class Server {
       room.sockets.add(s);
       increment(room.clientCount);
       currentRoom.put(s, room);
-      String color = colorPicker(room);
+      Color color = colorPicker(room);
       room.colorOf.put(s, color);
       for (Socket socket : room.sockets) {
         if (!socket.equals(s)) {
@@ -149,7 +149,7 @@ public class Server {
           os.writeObject("server#Stranger_Joined");
         }
       }
-      oos.writeObject("server#Room_Joined#" + color + "#" + room.name);
+      oos.writeObject("server#Room_Joined#" + color.getName() + "#" + room.name);
       oos.flush();
     } else {
       oos.writeObject("server#Room_Full");
@@ -174,9 +174,9 @@ public class Server {
       } else {
         decrement(room.clientCount);
         room.sockets.remove(s);
-        String colorName = room.colorOf.get(s);
+        Color color = room.colorOf.get(s);
         for (int i = 0; i < ChatRoom.MAX_CLIENT; i++) {
-          if (room.color[i].getName().equals(colorName)) {
+          if (room.color[i].getName().equals(color.getName())) {
             room.color[i].setAvailable(true);
             break;
           }
@@ -280,7 +280,8 @@ public class Server {
         if (!socket.equals(s)) {
           ObjectOutputStream os = oosOf.get(socket);
           if (obj instanceof String) {
-            os.writeObject(obj + "#" + room.colorOf.get(s));
+            Color color = room.colorOf.get(s);
+            os.writeObject(obj + "#" + color.getName());
           } else {
             os.writeObject(obj);
           }

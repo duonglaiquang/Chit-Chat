@@ -13,8 +13,8 @@ public class ChatRoom implements Serializable {
   public AtomicInteger clientCount = new AtomicInteger(0);
   public Color[] color = new Color[MAX_CLIENT];
   public transient List<Socket> sockets = Collections.synchronizedList(new ArrayList<>());
-  public transient String[] colorName = {"white", "beige", "orange", "lightblue", "yellow", "lightgreen", "pink", "green", "lime", "cyan"};
-  public transient Map<Socket, String> colorOf = Collections.synchronizedMap(new HashMap<>());
+  public transient String[] colorName = {"red", "blue", "orange", "green", "black", "purple", "pink", "magenta", "lime", "cyan"};
+  public transient Map<Socket, Color> colorOf = Collections.synchronizedMap(new HashMap<>());
 
   public ChatRoom(Integer id, String name, String description) {
     this.id = id;

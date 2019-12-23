@@ -7,10 +7,18 @@ import javafx.scene.image.WritableImage;
 
 import java.io.Serializable;
 
-
 public class SerializableImage implements Serializable {
   private int width, height;
   private int[][] data;
+  private String color = null;
+
+  public String getColor() {
+    return color;
+  }
+
+  public void setColor(String color) {
+    this.color = color;
+  }
 
   public void setImage(Image image) {
     width = ((int) image.getWidth());
@@ -23,7 +31,6 @@ public class SerializableImage implements Serializable {
         data[i][j] = r.getArgb(i, j);
       }
     }
-
   }
 
   public Image getImage() {

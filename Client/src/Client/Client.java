@@ -26,9 +26,10 @@ public class Client {
     oos.flush();
   }
 
-  public void sendImage(Image image) throws IOException {
+  public void sendImage(Image image, String color) throws IOException {
     SerializableImage img = new SerializableImage();
     img.setImage(image);
+    img.setColor(color);
     oos.writeObject(img);
     oos.flush();
   }
@@ -79,7 +80,7 @@ public class Client {
                   rc = new RootController();
                   rc.changeScene("chatBox");
                   Main.cc.setTag(st.nextToken());
-                  Main.cc.init("Stranger");
+                  Main.cc.init("Stranger", null);
                   break;
 
                 case "Searching":
@@ -114,7 +115,7 @@ public class Client {
                   color = st.nextToken();
                   String roomName = st.nextToken();
                   mc.roomCreated();
-                  Main.cc.init(roomName);
+                  Main.cc.init(roomName, color);
                   Main.cc.showSystemMessage("You are <" + color.toUpperCase() + ">", false);
                   break;
 
@@ -128,7 +129,7 @@ public class Client {
                   String room = st.nextToken();
                   rc = new RootController();
                   rc.changeScene("chatBox");
-                  Main.cc.init(room);
+                  Main.cc.init(room, color);
                   Main.cc.showSystemMessage("You are <" + color.toUpperCase() + ">", false);
                   break;
 
@@ -170,12 +171,14 @@ public class Client {
           } else {
             SerializableImage image = (SerializableImage) objReceived;
             Image img;
+            String color = null;
             try {
               img = image.getImage();
+              color = image.getColor();
             } catch (IllegalArgumentException e) {
               img = new Image(new FileInputStream("src/Client/Assets/images/file-not-found.png"));
             }
-            Main.cc.addImage(img, true);
+            Main.cc.addImage(img, true, color);
           }
         }
       } catch (EOFException | SocketException e) {

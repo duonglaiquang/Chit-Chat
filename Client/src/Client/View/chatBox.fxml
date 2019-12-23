@@ -24,17 +24,18 @@
     <TextField fx:id="message" layoutY="364.0" prefHeight="36.0" prefWidth="565.0" />
     <HBox alignment="CENTER_LEFT" prefHeight="36.0" prefWidth="600.0">
         <Button fx:id="leaveBtn" mnemonicParsing="false" text="Back">
-           <HBox.margin>
-               <Insets left="10.0" />
-           </HBox.margin>
+            <HBox.margin>
+                <Insets left="10.0" />
+            </HBox.margin>
         </Button>
         <Label fx:id="title" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="472.0" text="Label" textAlignment="CENTER">
-           <font>
-               <Font name="Arial Bold" size="18.0" />
-           </font>
+            <font>
+                <Font name="Arial Bold" size="18.0" />
+            </font>
         </Label>
-      <Label fx:id="tagLb" style="visibility: false;" text="null" />
     </HBox>
     <ImageView fx:id="attach" fitHeight="36.0" fitWidth="35.0" layoutX="565.0" layoutY="364.0" onMouseClicked="#attachFile" pickOnBounds="true" preserveRatio="true">
     </ImageView>
+     <Label fx:id="tagLb" style="visibility: false;" text="null" />
+     <Label fx:id="colorLb" style="visibility: false;" text="null" />
 </AnchorPane>

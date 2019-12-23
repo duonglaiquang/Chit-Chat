@@ -4,7 +4,6 @@ import Client.Main;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -25,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ChatController {
+  @FXML private Label colorLb;
   @FXML private Button leaveBtn;
   @FXML private Label tagLb;
   @FXML private ImageView attach;
@@ -33,7 +33,7 @@ public class ChatController {
   @FXML private VBox chatbox;
   @FXML private TextField message;
 
-  public void init(String roomName) {
+  public void init(String roomName, String color) {
     message.setOnKeyPressed(event -> {
       if(event.getCode() == KeyCode.ENTER){
         try {
@@ -46,6 +46,7 @@ public class ChatController {
 
     Platform.runLater(() -> {
       title.setText(roomName);
+      colorLb.setText(color);
       attach.setImage(new Image(new File("src/Client/Assets/images/attach.png").toURI().toString()));
       leaveBtn.setOnAction(event -> {
         try {
@@ -78,7 +79,7 @@ public class ChatController {
     str = message.getText();
     message.clear();
     Main.client.oos.writeObject(str);
-    addMessage(str, false, null);
+    addMessage(str, false, colorLb.getText());
   }
 
   public void showSystemMessage(String msg, Boolean button) {
@@ -90,7 +91,7 @@ public class ChatController {
       Button rematchBtn = new Button("Rematch");
       rematchBtn.setOnAction(event -> {
         RootController rc = new RootController();
-        String tag = Main.cc.tagLb.getText();
+        String tag = tagLb.getText();
         try {
           rc.callMatch(tag);
         } catch (IOException e) {
@@ -123,34 +124,51 @@ public class ChatController {
     });
   }
 
-  public void addMessage(String msg, Boolean left, String color) throws FileNotFoundException {
+  public void addMessage(String msg, Boolean left, String color) {
     Label label = new Label(msg);
-    label.getStylesheets().add(getClass().getResource("../Assets/css/chatBox.css").toExternalForm());
-    label.getStyleClass().add("chat-bubble");
+    VBox msgVbox;
+    Label senderName;
+    HBox hbox;
 
-    FileInputStream input = new FileInputStream("src/Client/Assets/images/human.png");
-    Image image = new Image(input);
-    ImageView avatar = new ImageView(image);
-    avatar.setFitHeight(25);
-    avatar.setFitWidth(25);
-    HBox hBox;
-    if (left) {
-      hBox = new HBox(avatar, label);
-      if (color != null) {
-        label.setStyle("-fx-background-color: " + color);
+    if (color != null) {
+      if (left) {
+        senderName = new Label(color);
+        msgVbox = new VBox(5, senderName, label);
+        msgVbox.setAlignment(Pos.CENTER_LEFT);
+        hbox = new HBox(msgVbox);
+        hbox.setAlignment(Pos.CENTER_LEFT);
       } else {
-        label.getStyleClass().add("receive");
+        senderName = new Label("You");
+        msgVbox = new VBox(5, senderName, label);
+        msgVbox.setAlignment(Pos.CENTER_RIGHT);
+        hbox = new HBox(msgVbox);
+        hbox.setAlignment(Pos.CENTER_RIGHT);
       }
-      hBox.setAlignment(Pos.CENTER_LEFT);
-      HBox.setMargin(avatar, new Insets(0, 0, 0, 10));
+      senderName.setStyle("-fx-font-weight: bold;" + "-fx-font-family: Arial;" +  "-fx-font-size: 14;" + "-fx-text-fill: " + color + ";");
+      msgVbox.setStyle("-fx-padding: 10;" + "-fx-border-style: solid inside;"
+          + "-fx-border-width: 2;" + "-fx-border-insets: 5;"
+          + "-fx-border-radius: 5;" + "-fx-border-color: " + color +";");
     } else {
-      hBox = new HBox(label);
-      label.getStyleClass().add("send");
-      hBox.setAlignment(Pos.CENTER_RIGHT);
-      HBox.setMargin(label, new Insets(0, 10, 0, 0));
+      if (left) {
+        senderName = new Label("Stranger");
+        msgVbox = new VBox(5, senderName, label);
+        msgVbox.setAlignment(Pos.CENTER_LEFT);
+        hbox = new HBox(msgVbox);
+        hbox.setAlignment(Pos.CENTER_LEFT);
+      } else {
+        senderName = new Label("You");
+        msgVbox = new VBox(5, senderName, label);
+        msgVbox.setAlignment(Pos.CENTER_RIGHT);
+        hbox = new HBox(msgVbox);
+        hbox.setAlignment(Pos.CENTER_RIGHT);
+      }
+      senderName.setStyle("-fx-font-weight: bold;" + "-fx-font-family: Arial;" +  "-fx-font-size: 14;");
+      msgVbox.setStyle("-fx-padding: 10;" + "-fx-border-style: solid inside;"
+          + "-fx-border-width: 2;" + "-fx-border-insets: 5;"
+          + "-fx-border-radius: 5;" + "-fx-border-color: lightblue;");
     }
     Platform.runLater(() -> {
-      chatbox.getChildren().add(hBox);
+      chatbox.getChildren().add(hbox);
       chatbox.setSpacing(10);
       chatscroll.vvalueProperty().bind(chatbox.heightProperty());
       chatscroll.setFitToWidth(true);
@@ -166,17 +184,17 @@ public class ChatController {
     FileChooser fileChooser = new FileChooser();
     File selectedFile = fileChooser.showOpenDialog(Main.homeStage);
     Image img = new Image(new FileInputStream(selectedFile.getPath()));
-    Main.client.sendImage(img);
+    Main.client.sendImage(img, colorLb.getText());
     Platform.runLater(() -> {
       try {
-        Main.cc.addImage(img, false);
+        addImage(img, false, colorLb.getText());
       } catch (FileNotFoundException e) {
         e.printStackTrace();
       }
     });
   }
 
-  public void addImage(Image img, Boolean left) throws FileNotFoundException {
+  public void addImage(Image img, Boolean left, String color) throws FileNotFoundException {
     ImageView imageView = new ImageView(img);
     imageView.setFitHeight(180);
     imageView.setFitWidth(220);
@@ -203,23 +221,50 @@ public class ChatController {
       });
     });
 
-    Image image = new Image(new FileInputStream("src/Client/Assets/images/human.png"));
-    ImageView avatar = new ImageView(image);
-    avatar.setFitHeight(25);
-    avatar.setFitWidth(25);
+    VBox msgVbox;
+    Label senderName;
+    HBox hbox;
 
-    HBox hBox;
-    if (left) {
-      hBox = new HBox(avatar, imageView);
-      hBox.setAlignment(Pos.CENTER_LEFT);
-      HBox.setMargin(avatar, new Insets(0, 0, 0, 10));
+    if (color != null) {
+      if (left) {
+        senderName = new Label(color);
+        msgVbox = new VBox(5, senderName, imageView);
+        msgVbox.setAlignment(Pos.CENTER_LEFT);
+        hbox = new HBox(msgVbox);
+        hbox.setAlignment(Pos.CENTER_LEFT);
+      } else {
+        senderName = new Label("You");
+        msgVbox = new VBox(5, senderName, imageView);
+        msgVbox.setAlignment(Pos.CENTER_RIGHT);
+        hbox = new HBox(msgVbox);
+        hbox.setAlignment(Pos.CENTER_RIGHT);
+      }
+      senderName.setStyle("-fx-font-weight: bold;" + "-fx-font-family: Arial;" +  "-fx-font-size: 14;" + "-fx-text-fill: " + color + ";");
+      msgVbox.setStyle("-fx-padding: 10;" + "-fx-border-style: solid inside;"
+          + "-fx-border-width: 2;" + "-fx-border-insets: 5;"
+          + "-fx-border-radius: 5;" + "-fx-border-color: " + color +";");
     } else {
-      hBox = new HBox(imageView);
-      hBox.setAlignment(Pos.CENTER_RIGHT);
-      HBox.setMargin(imageView, new Insets(0, 10, 0, 0));
+      if (left) {
+        senderName = new Label("Stranger");
+        msgVbox = new VBox(5, senderName, imageView);
+        msgVbox.setAlignment(Pos.CENTER_LEFT);
+        hbox = new HBox(msgVbox);
+        hbox.setAlignment(Pos.CENTER_LEFT);
+      } else {
+        senderName = new Label("You");
+        msgVbox = new VBox(5, senderName, imageView);
+        msgVbox.setAlignment(Pos.CENTER_RIGHT);
+        hbox = new HBox(msgVbox);
+        hbox.setAlignment(Pos.CENTER_RIGHT);
+      }
+      senderName.setStyle("-fx-font-weight: bold;" + "-fx-font-family: Arial;" +  "-fx-font-size: 14;");
+      msgVbox.setStyle("-fx-padding: 10;" + "-fx-border-style: solid inside;"
+          + "-fx-border-width: 2;" + "-fx-border-insets: 5;"
+          + "-fx-border-radius: 5;" + "-fx-border-color: lightblue;");
     }
+
     Platform.runLater(() -> {
-      chatbox.getChildren().add(hBox);
+      chatbox.getChildren().add(hbox);
       chatbox.setSpacing(10);
       chatscroll.vvalueProperty().bind(chatbox.heightProperty());
       chatscroll.setFitToWidth(true);
