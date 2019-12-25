@@ -2,6 +2,7 @@ package Server;
 
 import CustomClass.SerializableImage;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -31,17 +32,50 @@ public class ClientHandler implements Runnable {
             if (obj instanceof String) {
               String strReceived;
               strReceived = (String) obj;
-              Server.checkCommand(strReceived, s, oos);
+              System.out.println(strReceived);
+
+              Thread newThread = new Thread(() -> {
+                try {
+                  Server.checkCommand(strReceived, s, oos);
+                } catch (IOException e) {
+                  System.out.println("Exception check command thread!");
+                }
+              });
+
+              newThread.start();
             } else if (obj instanceof SerializableImage) {
-              Server.transportMsg(s, obj);
+
+              Thread newThread = new Thread(() -> {
+                try {
+                  Server.transportMsg(s, obj);
+                } catch (IOException e) {
+                  System.out.println("Exception send image thread!");
+                }
+              });
+
+              newThread.start();
             }
           }
         }
-      } catch (NullPointerException | IOException | ClassNotFoundException e) {
-        try {
-          Server.quit(s, oos);
-        } catch (IOException ignored) {
-        }
+      } catch (EOFException e) {
+        System.out.println("EOFE!");
+        Thread newThread = new Thread(() -> {
+          try {
+            Server.quit(s, oos);
+          } catch (IOException ignored) {
+          }
+        });
+        newThread.start();
+
+      } catch (NullPointerException | ClassNotFoundException | IOException e) {
+        System.out.println("Exception in handler!");
+        Thread newThread = new Thread(() -> {
+          try {
+            Server.quit(s, oos);
+          } catch (IOException ignored) {
+          }
+        });
+        newThread.start();
       }
     });
 

@@ -9,6 +9,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
@@ -56,7 +57,8 @@ public class Client {
   public void start() throws IOException {
     while (s == null) {
       try {
-        s = new Socket("192.168.110.122", 1234);
+        s = new Socket("localhost", 6666);
+        System.out.println("Connected to Server: " + s);
         oos = new ObjectOutputStream(s.getOutputStream());
         ois = new ObjectInputStream(s.getInputStream());
       } catch (Exception ignored) {
@@ -145,6 +147,10 @@ public class Client {
                   Main.rc.updateUserCount(st.nextToken());
                   break;
 
+                case "typing":
+//                  Main.cc.addTypingIndicator();
+                  break;
+
                 default:
                   System.out.println("Unknown Response: " + strReceived);
                   break;
@@ -183,6 +189,8 @@ public class Client {
         }
       } catch (EOFException | SocketException e) {
         // Lost connection
+        e.printStackTrace();
+        System.out.println("Lost Connection!");
         RootController rc = new RootController();
         try {
           rc.changeScene("root");
@@ -199,6 +207,7 @@ public class Client {
         ois = null;
         try {
           start();
+          updateCount();
         } catch (IOException ignored) {
         }
       } catch (IOException | ClassNotFoundException e) {
@@ -207,6 +216,6 @@ public class Client {
     });
 
     thReceiver.start();
-    updateCount();
+//    updateCount();
   }
 }
