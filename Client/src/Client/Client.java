@@ -148,7 +148,7 @@ public class Client {
                   break;
 
                 case "typing":
-                  Main.cc.addTypingIndicator();
+//                  Main.cc.addTypingIndicator();
                   break;
 
                 default:

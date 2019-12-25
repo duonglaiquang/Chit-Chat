@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class ChatController {
   @FXML private Label colorLb;
@@ -45,19 +46,19 @@ public class ChatController {
         }
       }
     });
-
-    PauseTransition pause = new PauseTransition(Duration.seconds(2));
-    message.textProperty().addListener(
-        (observable, oldValue, newValue) -> {
-          pause.setOnFinished(event -> {
-            try {
-              Main.client.request("typing");
-            } catch (IOException ignored) {
-            }
-          });
-          pause.playFromStart();
-        }
-    );
+//
+//    PauseTransition pause = new PauseTransition(Duration.seconds(1));
+//    message.textProperty().addListener(
+//        (observable, oldValue, newValue) -> {
+//          pause.setOnFinished(event -> {
+//            try {
+//              Main.client.request("typing");
+//            } catch (IOException ignored) {
+//            }
+//          });
+//          pause.playFromStart();
+//        }
+//    );
 
 
     Platform.runLater(() -> {
@@ -147,6 +148,7 @@ public class ChatController {
     ImageView gg = new ImageView(new Image(new File("src/Client/Assets/images/gg.png").toURI().toString()));
     gg.setFitHeight(25);
     gg.setFitWidth(25);
+    gg.setStyle("-fx-cursor: hand");
 
     gg.setOnMouseClicked(mouseEvent -> {
       try {
@@ -213,15 +215,21 @@ public class ChatController {
   public void attachFile() throws IOException {
     FileChooser fileChooser = new FileChooser();
     File selectedFile = fileChooser.showOpenDialog(Main.homeStage);
-    Image img = new Image(new FileInputStream(selectedFile.getPath()));
-    Main.client.sendImage(img, colorLb.getText());
-    Platform.runLater(() -> {
-      try {
-        addImage(img, false, colorLb.getText());
-      } catch (FileNotFoundException e) {
-        e.printStackTrace();
-      }
-    });
+    String extension = getFileExtension(selectedFile);
+    if(extension.equals("png") || extension.equals("jpg") || extension.equals("jpeg")) {
+      Image img = new Image(new FileInputStream(selectedFile.getPath()));
+      Main.client.sendImage(img, colorLb.getText());
+      Platform.runLater(() -> {
+        try {
+          addImage(img, false, colorLb.getText());
+        } catch (FileNotFoundException e) {
+          e.printStackTrace();
+        }
+      });
+    } else {
+      RootController rc = new RootController();
+      rc.newStage("warning", "Warning", "Invalid File!");
+    }
   }
 
   public void addImage(Image img, Boolean left, String color) throws FileNotFoundException {
@@ -301,10 +309,17 @@ public class ChatController {
     });
   }
 
-  public void addTypingIndicator() {
-    Label lb = new Label("Stranger is typing...");
-    lb.getStyleClass().add("typing");
-    lb.getStylesheets().add(getClass().getResource("../Assets/css/chatBox.css").toExternalForm());
-    //TODO typing indicator
+  private String getFileExtension(File file) {
+    String fileName = file.getName();
+    if(fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
+      return fileName.substring(fileName.lastIndexOf(".")+1);
+    else return "";
   }
+//
+//  public void addTypingIndicator() {
+//    Label lb = new Label("Stranger is typing...");
+//    lb.getStyleClass().add("typing");
+//    //TODO typing indicator
+//    System.out.println("typing");
+//  }
 }
