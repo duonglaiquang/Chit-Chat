@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -17,6 +18,7 @@ import java.io.IOException;
 
 public class RootController {
 
+  @FXML private Button cancelBtn;
   @FXML private Label onlineCount;
   @FXML private ImageView nyan;
   @FXML private ComboBox<String> tagbox;
@@ -56,6 +58,7 @@ public class RootController {
   }
 
   public void cancelMatch() throws IOException {
+    cancelBtn.setDisable(true);
     Main.client.request("cancel");
   }
 
@@ -82,6 +85,7 @@ public class RootController {
     }
     if(name.equals("chatBox")){
       Main.cc = fXMLLoader.getController();
+      scene.getStylesheets().add(getClass().getResource("../Assets/css/chatBox.css").toExternalForm());
     }
     if(name.equals("searching")){
       RootController rc = fXMLLoader.getController();

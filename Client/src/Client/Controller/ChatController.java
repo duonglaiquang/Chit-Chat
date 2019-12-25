@@ -1,23 +1,25 @@
 package Client.Controller;
 
 import Client.Main;
+import Client.Translator;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,6 +45,20 @@ public class ChatController {
         }
       }
     });
+
+    PauseTransition pause = new PauseTransition(Duration.seconds(2));
+    message.textProperty().addListener(
+        (observable, oldValue, newValue) -> {
+          pause.setOnFinished(event -> {
+            try {
+              Main.client.request("typing");
+            } catch (IOException ignored) {
+            }
+          });
+          pause.playFromStart();
+        }
+    );
+
 
     Platform.runLater(() -> {
       title.setText(roomName);
@@ -85,7 +101,6 @@ public class ChatController {
   public void showSystemMessage(String msg, Boolean button) {
     Label label = new Label(msg);
     label.getStyleClass().add("system-grey");
-    label.getStylesheets().add(getClass().getResource("../Assets/css/chatBox.css").toExternalForm());
     HBox hBox = null;
     if (button) {
       Button rematchBtn = new Button("Rematch");
@@ -124,24 +139,39 @@ public class ChatController {
     });
   }
 
-  public void addMessage(String msg, Boolean left, String color) {
+  public void addMessage(String msg, Boolean left, String color) throws IOException {
     Label label = new Label(msg);
     VBox msgVbox;
     Label senderName;
     HBox hbox;
+    ImageView gg = new ImageView(new Image(new File("src/Client/Assets/images/gg.png").toURI().toString()));
+    gg.setFitHeight(25);
+    gg.setFitWidth(25);
+
+    gg.setOnMouseClicked(mouseEvent -> {
+      try {
+        String str = Translator.translate("ja", "en", msg);
+        Tooltip tooltip = new Tooltip(str);
+        tooltip.setTextAlignment(TextAlignment.LEFT);
+        tooltip.setShowDelay(Duration.millis(0));
+        Tooltip.install(gg, tooltip);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
 
     if (color != null) {
       if (left) {
         senderName = new Label(color);
         msgVbox = new VBox(5, senderName, label);
         msgVbox.setAlignment(Pos.CENTER_LEFT);
-        hbox = new HBox(msgVbox);
+        hbox = new HBox(msgVbox, gg);
         hbox.setAlignment(Pos.CENTER_LEFT);
       } else {
         senderName = new Label("You");
         msgVbox = new VBox(5, senderName, label);
         msgVbox.setAlignment(Pos.CENTER_RIGHT);
-        hbox = new HBox(msgVbox);
+        hbox = new HBox(gg, msgVbox);
         hbox.setAlignment(Pos.CENTER_RIGHT);
       }
       senderName.setStyle("-fx-font-weight: bold;" + "-fx-font-family: Arial;" +  "-fx-font-size: 14;" + "-fx-text-fill: " + color + ";");
@@ -153,13 +183,13 @@ public class ChatController {
         senderName = new Label("Stranger");
         msgVbox = new VBox(5, senderName, label);
         msgVbox.setAlignment(Pos.CENTER_LEFT);
-        hbox = new HBox(msgVbox);
+        hbox = new HBox(msgVbox, gg);
         hbox.setAlignment(Pos.CENTER_LEFT);
       } else {
         senderName = new Label("You");
         msgVbox = new VBox(5, senderName, label);
         msgVbox.setAlignment(Pos.CENTER_RIGHT);
-        hbox = new HBox(msgVbox);
+        hbox = new HBox(gg, msgVbox);
         hbox.setAlignment(Pos.CENTER_RIGHT);
       }
       senderName.setStyle("-fx-font-weight: bold;" + "-fx-font-family: Arial;" +  "-fx-font-size: 14;");
@@ -269,5 +299,12 @@ public class ChatController {
       chatscroll.vvalueProperty().bind(chatbox.heightProperty());
       chatscroll.setFitToWidth(true);
     });
+  }
+
+  public void addTypingIndicator() {
+    Label lb = new Label("Stranger is typing...");
+    lb.getStyleClass().add("typing");
+    lb.getStylesheets().add(getClass().getResource("../Assets/css/chatBox.css").toExternalForm());
+    //TODO typing indicator
   }
 }

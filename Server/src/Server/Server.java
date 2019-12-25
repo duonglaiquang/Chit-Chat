@@ -12,10 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Server {
   final static String[] tags = {null, "game", "movie", "book", "music", "boy", "girl"};
-  //TODO : replace none syncronized collection
-  //TODO : recheck roomls function
-  //TODO : build with gradle ,package dmg
-  //TODO : revamp UI
 
   static Map<Socket, ObjectOutputStream> oosOf = Collections.synchronizedMap(new HashMap<>());
   static Map<Socket, ChatRoom> currentRoom = Collections.synchronizedMap(new HashMap<>());
@@ -106,6 +102,7 @@ public class Server {
     } else {
       System.out.println(rooms.size());
       oos.writeObject(rooms);
+      oos.reset();
     }
     oos.flush();
   }
@@ -210,6 +207,28 @@ public class Server {
     oos.writeObject("server#Client_Count#" + userCount);
   }
 
+  static void transportMsg(Socket s, Object obj) throws IOException, NullPointerException {
+    if (pair.get(s) != null) {
+      ObjectOutputStream os = oosOf.get(pair.get(s));
+      os.writeObject(obj);
+      os.reset();
+    } else {
+      ChatRoom room = currentRoom.get(s);
+      for (Socket socket : room.sockets) {
+        if (!socket.equals(s)) {
+          ObjectOutputStream os = oosOf.get(socket);
+          if (obj instanceof String) {
+            Color color = room.colorOf.get(s);
+            os.writeObject(obj + "#" + color.getName());
+          } else {
+            os.writeObject(obj);
+          }
+          os.reset();
+        }
+      }
+    }
+  }
+
   static void checkCommand(String str, Socket s, ObjectOutputStream oos) throws IOException {
     StringTokenizer st = new StringTokenizer(str, "#");
     String cmd = st.nextToken();
@@ -262,6 +281,10 @@ public class Server {
         case "getStatus":
           getStatus(oos);
           break;
+
+        case "typing":
+          transportMsg(s, "server#typing");
+          break;
         default:
           oos.writeObject("server#Wrong Request Command!");
       }
@@ -270,28 +293,8 @@ public class Server {
     }
   }
 
-  static void transportMsg(Socket s, Object obj) throws IOException, NullPointerException {
-    if (pair.get(s) != null) {
-      ObjectOutputStream os = oosOf.get(pair.get(s));
-      os.writeObject(obj);
-    } else {
-      ChatRoom room = currentRoom.get(s);
-      for (Socket socket : room.sockets) {
-        if (!socket.equals(s)) {
-          ObjectOutputStream os = oosOf.get(socket);
-          if (obj instanceof String) {
-            Color color = room.colorOf.get(s);
-            os.writeObject(obj + "#" + color.getName());
-          } else {
-            os.writeObject(obj);
-          }
-        }
-      }
-    }
-  }
-
   public static void main(String[] args) throws IOException {
-    try (ServerSocket ss = new ServerSocket(1234)) {
+    try (ServerSocket ss = new ServerSocket(6666)) {
       System.out.println("Running Server on " + ss + "...");
       Socket s;
 
