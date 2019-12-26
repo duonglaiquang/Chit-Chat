@@ -2,7 +2,6 @@ package Client.Controller;
 
 import Client.Main;
 import Client.Translator;
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -24,9 +23,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
 
 public class ChatController {
+  @FXML private ComboBox<String> from;
+  @FXML private ComboBox<String> to;
   @FXML private Label colorLb;
   @FXML private Button leaveBtn;
   @FXML private Label tagLb;
@@ -37,6 +37,12 @@ public class ChatController {
   @FXML private TextField message;
 
   public void init(String roomName, String color) {
+    String[] languages = {"Japanese", "English", "Vietnamese", "Chinese", "Taiwanese"};
+    from.getItems().addAll(languages);
+    to.getItems().addAll(languages);
+    from.getSelectionModel().select("Japanese");
+    to.getSelectionModel().select("English");
+
     message.setOnKeyPressed(event -> {
       if(event.getCode() == KeyCode.ENTER){
         try {
@@ -140,6 +146,32 @@ public class ChatController {
     });
   }
 
+  public String convertLangCode(String str){
+    String code = null;
+    switch (str) {
+      case "Japanese":
+        code = "ja";
+        break;
+
+      case "English":
+        code = "en";
+        break;
+
+      case "Vietnamese":
+        code = "vi";
+        break;
+
+      case "Chinese":
+        code = "zh-CN";
+        break;
+
+      case "Taiwanese":
+        code = "zh-TW";
+        break;
+    }
+    return code;
+  }
+
   public void addMessage(String msg, Boolean left, String color) throws IOException {
     Label label = new Label(msg);
     VBox msgVbox;
@@ -152,7 +184,9 @@ public class ChatController {
 
     gg.setOnMouseClicked(mouseEvent -> {
       try {
-        String str = Translator.translate("ja", "en", msg);
+        String transFrom = from.getValue();
+        String transTo = to.getValue();
+        String str = Translator.translate(convertLangCode(transFrom), convertLangCode(transTo), msg);
         Tooltip tooltip = new Tooltip(str);
         tooltip.setTextAlignment(TextAlignment.LEFT);
         tooltip.setShowDelay(Duration.millis(0));

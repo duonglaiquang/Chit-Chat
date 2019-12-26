@@ -57,7 +57,7 @@ public class Client {
   public void start() throws IOException {
     while (s == null) {
       try {
-        s = new Socket("localhost", 6666);
+        s = new Socket("3.114.153.151", 6666);
         System.out.println("Connected to Server: " + s);
         oos = new ObjectOutputStream(s.getOutputStream());
         ois = new ObjectInputStream(s.getInputStream());
